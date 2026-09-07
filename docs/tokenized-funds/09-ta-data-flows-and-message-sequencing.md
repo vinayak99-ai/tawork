@@ -1,574 +1,397 @@
-# Transfer Agent Data Flows & Message Sequencing — End-to-End Deep Dive
+# Transfer Agent Data Flows — Direct-to-TA Institutional Money Market Fund
 
-How data actually moves between the investor/order-entry portal, the transfer agent (TA), fund
-accounting, the payment/disbursement agent, the custodian, NSCC, and shareholder reporting — with
-the real messaging standards involved (not invented ones) and the step-by-step sequence for a
-subscription, a redemption, and a dividend distribution. Companion to `05`, `06`, and `08`.
+How data moves when a **domestic US corporate treasury client** invests directly in a **domestic
+(Rule 2a-7) money market fund** through an **investor portal that connects straight to the
+transfer agent** — no broker-dealer, no NSCC, no DTCC. This is a **direct-at-fund** distribution
+model, not the intermediary/omnibus model covered in `06`. Companion to `05` and `08`.
 
-**Interpretation note**: this doc reads "TA to HCC" from the request as **TA to NSCC** (the DTCC
-clearing subsidiary covered in `06`) — this session's voice transcription has consistently
-mangled DTCC/NSCC/SEC elsewhere (DDCC, ACC), and NSCC fits the data-flow context. Flag if a
-different entity was meant.
+**Scope change from the previous version of this doc**: NSCC Fund/SERV, ACATS-Fund/SERV, DTCC
+Networking, and SWIFT `setr.*` messages are all deliberately **out of scope here** — every one of
+those exists to route orders through a broker-dealer/intermediary or a cross-border distributor,
+and neither applies when the investor transacts directly with the TA. If you need that
+intermediary-mediated model, it's fully covered in `06`. This doc models the simpler, direct case.
 
-**Accuracy discipline**: several specific message codes and formats researched for this doc turned
-out **not** to exist or not to apply the way initially assumed (see §7). Every code cited below was
-independently verified against a primary or authoritative source; anything not verified is stated
-as such, not guessed at. This matters more here than in prior docs, because a wrong message code in
-a technical reference is actively misleading, not just incomplete.
+**Real-world precedent for this pattern**: this isn't a hypothetical simplification — it's how
+some funds actually operate. Franklin Templeton's OnChain Fund (`01`, §5) explicitly **excludes
+sales through financial intermediaries**, distributing only via its own Benji App (individuals) or
+**Institutional Web Portal** (institutions) — the same direct-at-fund shape modeled here, just
+without the blockchain layer.
 
 ---
 
 ## ⚡ TL;DR
 
-- **Order intake** runs on two largely parallel systems depending on market/channel: in the **US**,
-  broker-dealer/distributor orders reach the TA almost entirely via **NSCC's Fund/SERV** (Record
-  Type 001 Order, 015 Exchange — `06`, §1). In **Europe/global cross-border** fund distribution,
-  the equivalent messages are **SWIFT ISO 20022 `setr.*`** messages (verified codes in §1). DTCC is
-  reportedly layering an optional ISO 20022 interface onto Fund/SERV itself, but a firm timeline for
-  that convergence wasn't confirmed.
-- **TA ↔ Fund Accounting** is the one leg of this whole diagram with **no named industry-standard
-  message format** — NAV transmission and the reverse net-flow report are proprietary/vendor file
-  feeds or API calls, often not even crossing a company boundary (the same firm, e.g. State Street
-  or BNY Mellon, frequently runs both books on one platform).
-- **TA → payment agent/bank**: ACH debits/credits use standard NACHA entry classes (**PPD** for
-  standing-authorization consumer debits, **WEB** for online-initiated) — **there is no
-  mutual-fund-specific NACHA code**, contrary to what you might expect. Large-dollar wires run over
-  **Fedwire**, which itself migrated to **ISO 20022** messaging in July 2025. Custodian daily cash
-  statements typically use **MT940/camt.053** (end-of-day) or **MT942/camt.052** (intraday).
-- **The forward-pricing rule (Rule 22c-1)** is what forces the NAV-then-price sequencing: an order
-  must be priced at the **next NAV computed after receipt**, not any earlier price — this is the
-  hard dependency that makes "TA waits for fund accounting's NAV before it can finalize any order"
-  non-negotiable, every single business day.
-- **Redemption proceeds must be paid within 7 calendar days** (ICA §22(e)) — the one narrow,
-  SEC-sanctioned exception being a temporary hold when elder/vulnerable-adult financial
-  exploitation is suspected (2018 no-action letter).
-- **Seven full scenario walkthroughs** in §8 — subscription, redemption, dividend distribution
-  (cash), dividend reinvestment, capital gain distribution (cash), capital gain reinvestment, and
-  tax withholding on a distribution (the one that chains TA → Accounting → Payments →
-  Shareholder Reporting → IRS Reporting in a single pass) — each as a simple "who sends what to
-  whom, in what order" list.
+- **The actors, direct-at-fund**: Corporate Treasury Client → Investor Portal → Transfer Agent,
+  with the TA still coordinating with **Fund Accounting** (NAV), a **Custodian Bank** (fund
+  assets), a **Payment rail** (Fedwire/ACH), and **Shareholder/IRS Reporting** — but with no
+  broker-dealer and no NSCC/DTCC infrastructure anywhere in the chain.
+- **Money market fund NAV mechanics matter here**: a Rule 2a-7 government/retail money fund
+  targets a stable **$1.00 NAV** via amortized cost/penny rounding, and — specifically to serve
+  institutional cash-management clients like a corporate treasury — many such funds **strike NAV
+  multiple times a day** (commonly 2–3 times: morning, midday, afternoon) so the client can invest
+  or redeem more than once in a single business day.
+- **Payment rail skews toward Fedwire, not ACH**, for this client type: corporate treasury cash
+  management moves large sums same-day, which is Fedwire's whole purpose (real-time gross
+  settlement, immediate and final) — ACH's batch/scheduled-window settlement is a secondary option
+  here, not the primary one.
+- **KYC/AML looks different for a legal-entity customer**: opening the account requires FinCEN's
+  **Beneficial Ownership Rule** (31 CFR 1010.230) — identifying the natural person(s) who own
+  **≥25% equity** and the one person with significant management control, not just screening an
+  individual's own identity.
+- **Tax treatment changes materially for a domestic corporation**: NRA withholding never applies
+  (the investor is domestic), and — with a properly filed Form W-9 claiming corporate exempt-payee
+  status — **backup withholding doesn't apply either, and the fund generally isn't even required to
+  issue a 1099-DIV at all**. That exemption evaporates the moment backup withholding actually gets
+  triggered (e.g., no valid W-9 on file) — then the normal reporting obligations kick back in.
+- **Seven scenarios in §8**, redone for this direct/no-NSCC/domestic-MMF/corporate-treasury
+  context: subscription, redemption, dividend distribution (cash), dividend reinvestment, capital
+  gain distribution (cash), capital gain reinvestment, and the corporate tax-certification scenario.
 
 ---
 
-## 0. The map, at a glance
+## 1. The actors in this model
 
-```
-                         ┌─────────────────────────┐
-   Investor / Advisor    │   Order-entry portal /   │
-   ───────────────────►  │   distributor / broker   │
-                         └────────────┬─────────────┘
-                                      │  Fund/SERV 001/015 (US)
-                                      │  or setr.010/004/013 (cross-border)
-                                      ▼
-   ┌───────────────────────────────────────────────────────────────────┐
-   │                         TRANSFER AGENT                            │
-   │      (master securityholder file — see doc 08 for internals)      │
-   └───┬───────────┬───────────────┬──────────────┬─────────────┬──────┘
-       │           │               │              │             │
-       │ NAV req   │ ACH/Fedwire   │ Fund/SERV    │ Trade instr/│ Statements,
-       │ / net     │ debit/credit  │ confirm,     │ cash confirm│ confirms,
-       │ flows     │               │ Networking   │             │ 1099s
-       ▼           ▼               ▼              ▼             ▼
-   ┌────────┐  ┌─────────┐   ┌──────────┐   ┌───────────┐  ┌────────────┐
-   │  Fund  │  │ Payment │   │   NSCC   │   │ Custodian │  │Shareholder │
-   │Accounting│ │ agent/  │   │(Fund/SERV,│  │   bank    │  │ reporting/ │
-   │(NAV strike)│  bank   │   │Networking)│   │           │  │  tax forms │
-   └────────┘  └─────────┘   └──────────┘   └───────────┘  └────────────┘
-```
+| Actor | Role |
+|---|---|
+| **Corporate Treasury Client** | The investor — a domestic US corporation managing its own cash reserves, not an individual retail investor. |
+| **Investor Portal** | A direct channel into the TA's own order-processing system — proprietary web session, secure file/SFTP batch, or API. Not a broker-dealer platform; not connected to NSCC. |
+| **Transfer Agent (TA)** | Same core function as `05` — maintains the master securityholder file, processes orders, applies KYC/AML, generates statements and tax forms. |
+| **Fund Accounting** | Strikes the fund's NAV (potentially multiple times a day for this fund type — §3). |
+| **Custodian Bank** | Holds the fund's actual portfolio securities and cash (`07`, §3). |
+| **Payment System** | Fedwire (primary, given treasury-scale same-day movements) or ACH (secondary) — §4. |
+| **Shareholder/IRS Reporting** | Account statements, trade confirmations, and (where applicable) 1099-DIV — §6. |
 
-Every arrow in this diagram is covered in detail below, with what's actually verified about the
-format used on it.
+No broker-dealer, no NSCC, no DTCC. The TA is talking directly to the client's portal on one side
+and to Fund Accounting/Custodian/Payment rails on the other — a much shorter chain than the
+intermediary-mediated model in `06`.
 
 ---
 
-## 1. Portal / distributor → TA — order intake
+## 2. Account opening & KYC/AML for a legal-entity customer
 
-### 1.1 US domestic: NSCC Fund/SERV
+Two things are specific to a corporate customer, versus the individual-investor case already
+covered in `05`, §3:
 
-Already covered in depth in `06`, §1 — summarized here for sequencing: a broker-dealer/distributor
-submits a **Fund/SERV 001 Order** (purchase/redemption) or **015 Exchange** record; the TA
-confirms back through the same channel. This is DTCC's own description of Fund/SERV as **"the U.S.
-industry standard"** for this exact function. [DTCC Fund/SERV](https://dtcclearning.com/products-and-services/mutual-fund-services/fund-serv.html)
+- **FinCEN's Beneficial Ownership Rule (31 CFR 1010.230)**: when the TA opens a new account for a
+  legal entity, it must identify and verify **(1) each individual who owns ≥25% of the entity's
+  equity**, and **(2) one individual with significant responsibility to control/manage/direct the
+  entity** (an executive officer, senior manager, or similar). This is on top of, not instead of,
+  the entity's own identification (CIP under the fund's AML program, `05` §3).
+- **When re-verification is required**: historically this had to be reassessed at various trigger
+  points; a **FinCEN exceptive-relief order dated February 13, 2026** now limits mandatory
+  identification/verification of beneficial owners to **(1) initial account opening, (2) whenever
+  the institution has reason to doubt previously obtained beneficial-ownership information, and
+  (3) other risk-based triggers under the institution's own CDD procedures** — not a rigid
+  recurring schedule.
+- **Form W-9 at onboarding**: this is also where the corporation claims its **exempt payee**
+  status for backup-withholding purposes (relevant to the tax scenario in §8.7) — the exemption
+  isn't automatic just because the investor is a corporation; it has to be properly certified on
+  the W-9.
 
-### 1.2 Cross-border / global: SWIFT ISO 20022 `setr.*` messages
-
-**Verified message list** (cross-checked against SWIFT's own Standards MX Funds Message Definition
-Report and independent corroborating sources — this corrects an initial assumption that had wrong
-code numbers):
-
-| Code | Message | Direction |
-|---|---|---|
-| **setr.010.001** | Subscription Order | Instructing party (distributor/investment manager) → executing party (TA) |
-| **setr.012.001** | Subscription Order Confirmation | Executing party (TA) → instructing party |
-| **setr.004.001** | Redemption Order | Instructing party → executing party |
-| **setr.006.001** | Redemption Order Confirmation | Executing party → instructing party |
-| **setr.013.001** | Switch Order (fund-to-fund exchange) | Instructing party → executing party |
-| **setr.015.001** | Switch Order Confirmation | Executing party → instructing party |
-| setr.014.001 | Switch Order Cancellation Request | — |
-| setr.005/011.001 | Redemption/Subscription Order Cancellation Request | — |
-| setr.065.001 | Investment Fund Order Cancellation Request (general, cross-type) | — |
-| setr.066.001 | Investment Fund Cancellation Advice | — |
-| setr.016/017/018 | Order Instruction Status Report / Order Cancellation Status Report / Request For Order Status Report | — |
-| setr.001/003/007/009 | Redemption/Subscription **Bulk** Order + Bulk Order Confirmation (batched) | — |
-| setr.059–062, 064 | Alternative Funds Subscription/Redemption Order + Confirmations, Status Report — for hedge funds/PE, **not** '40 Act mutual funds | — |
-
-**`setr.020` was an incorrect assumption going into this research and does not appear to exist** in
-this message catalogue — don't use it. [Redemption Order (setr.004.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-004-001-Redemption-Order.html) ·
-[Redemption Order Confirmation (setr.006.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-006-001-Redemption-Order-Confirmation.html) ·
-[Subscription Order (setr.010.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-010-001-Subscription-Order.html) ·
-[Subscription Order Confirmation (setr.012.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-012-001-Subscription-Order-Confirmation.html) ·
-[Switch Order (setr.013.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-013-001-Switch-Order.html) ·
-[full setr business-area catalogue](https://www.iotafinance.com/en/SWIFT-ISO20022-Business-area-setr-Securities-Trade.html) ·
-[SWIFT Standards MX Funds MDR](https://www2.swift.com/knowledgecentre/rest/v1/publications/stdsmx_funds_mdrs/8.0/SR2022_MX_Funds_MDR1_Standards.pdf)
-
-The message definitions themselves confirm the **TA is the typical "executing party"** on these
-messages — e.g., the Redemption Order message is "sent by an instructing party... to the executing
-party... for example, a transfer agent." This is the same functional role Fund/SERV plays
-domestically — **setr and Fund/SERV are largely separate, parallel rails serving the same purpose
-in different markets**, not competing standards in the same market.
-
-**Convergence, flagged as directional only**: DTCC's own Settlement Transformation materials
-describe building "an ISO 20022 interface to NSCC's Fund/SERV, Networking, Mutual Fund Profile, and
-DTCC Payment aXis services" — i.e., DTCC is layering optional ISO 20022 connectivity onto Fund/SERV.
-**No firm timeline for this was confirmed against a primary DTCC page with dates** — treat as
-directional, not completed. [DTCC Settlement Transformation FAQ](https://www.dtcc.com/initiatives/Content/2-sett_trans_faqs/2_sett_trans_faq.htm) ·
-[ISO 20022 adoption initiatives report](https://www.iso20022.org/sites/default/files/2020-03/ISOInitiatives_July2018.pdf)
-
-**Legacy ISO 15022 MT codes**: not independently confirmed for investment-fund-specific orders.
-MT 5xx (Category 5) is confirmed as "Securities Markets" broadly, but which specific MT number(s)
-within it were the legacy dedicated fund-order messages wasn't pinned down — and **MT600 is
-Commodity Trade Confirmation, not funds**, despite superficially plausible naming. Describe the
-legacy layer generically ("SWIFT's older ISO 15022 FIN messages, now superseded by setr") rather
-than citing a specific MT number. [SWIFT Category 5 MDR](https://www2.swift.com/knowledgecentre/rest/v1/publications/us5md_20210723/2.0/us5md_20210723.pdf)
+[31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) ·
+[FinCEN — CDD Rule FAQs](https://www.fincen.gov/resources/statutes-and-regulations/cdd-rule-faqs) ·
+[FinCEN Order — Exceptive Relief, Feb 13 2026](https://www.fincen.gov/system/files/2026-02/FinCEN-Order-CCDExceptiveRelief.pdf)
 
 ---
 
-## 2. TA ↔ Fund Accounting — the NAV cycle (no standard message format)
+## 3. Order intake — investor portal directly to the TA
 
-### 2.1 Why this leg exists — Rule 22c-1 forward pricing
+No Fund/SERV, no `setr.*` messages, no intermediary confirmation loop. The flow is simply:
 
-**Rule 22c-1** (17 CFR 270.22c-1) requires a fund to sell/redeem shares "at a price based on the
-current net asset value... **next computed after receipt** of an order" — orders can't be priced at
-yesterday's NAV or an estimate; they must wait for the actual next-struck NAV.
-[17 CFR 270.22c-1, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.22c-1) ·
-[SEC 2003 Amendments to Rules Governing Pricing of Mutual Fund Shares](https://www.sec.gov/rules-regulations/2003/12/amendments-rules-governing-pricing-mutual-fund-shares)
+1. Corporate treasury client logs into the investor portal (a direct channel into the TA's system
+   — the same "institutional web portal" pattern documented for BENJI/FOBXX in `01`, §5).
+2. The order (subscription, redemption, etc.) is submitted straight into the TA's order-processing
+   and recordkeeping system.
+3. The TA validates and — once NAV is available (§4) — prices and posts it directly, with no
+   third-party clearing hop in between.
 
-**Rule 2a-4** (17 CFR 270.2a-4) defines "current net asset value": portfolio securities with
-readily available market quotations are valued at current market value; others at fair value
-determined in good faith by the board (this is where `07`'s Rule 2a-5 pricing-service coverage
-connects); changes in holdings must be reflected no later than the first calculation on the first
-business day following trade date. [17 CFR 270.2a-4, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.2a-4)
-
-Operationally: pricing begins at NYSE close (4:00pm ET); third-party pricing services (`07`, §8)
-feed security prices to fund accounting, which strikes NAV per share and applies control
-procedures. [ICI — FAQs: Mutual Fund Share Pricing](https://www.ici.org/faqs/faq/mfs/faqs_navs)
-
-### 2.2 NAV transmission — fund accounting → TA (no named standard)
-
-**This is the one leg of the entire diagram with no confirmed industry-standard message format.**
-Vendor material (e.g., Milestone Group's NAV/Unit Pricing platform) describes NAV-striking systems
-that "upload, merge and validate data from multiple sources, including accounting systems, registry
-and transfer agencies" — confirming the NAV strike is typically a **proprietary file feed or API
-call**, and very often not even a cross-company transmission at all, since the same servicer (State
-Street, BNY Mellon, JPMorgan — `07`, §4/§5) frequently runs both the fund accounting books and the
-TA platform. [Milestone Group NAV Unit Pricing](https://www.milestonegroup.com/solutions/fund-processing/nav-unit-pricing)
-
-**Don't present this as a named standard in any downstream use of this document** — it's
-proprietary/vendor-specific, confirmed by absence of any published spec, not by a source
-affirmatively saying "there is no standard."
-
-### 2.3 The reverse flow — TA → fund accounting, aggregate net flows for cash management
-
-Directionally confirmed as a real, necessary process: fund accounting/the portfolio manager needs
-the **day's aggregate net subscription/redemption total** (not per-shareholder detail) to know
-whether to raise cash (sell securities to fund net redemptions) or invest incoming cash (net
-subscriptions) — this is the mechanical link between TA processing and portfolio-level liquidity
-management, and it's also where **Rule 22e-4** liquidity-risk-management obligations get their
-operational trigger. **No specific named message/file standard was found for this flow either** —
-same caveat as §2.2.
-
-The **ICI's "Mutual Fund Operations Planning Guide for an Early Market Close"** looked like the
-closest primary source to a documented end-to-end sequence covering this exact TA/fund-accounting/
-NSCC interaction, but its content wasn't extractable via automated fetch in this research pass
-(PDF rendered as binary/image content). **Worth reading directly if this level of process detail
-matters for implementation work**: [ICI PDF](https://www.ici.org/system/files/attachments/pdf/19_ppr_marketclose.pdf)
+This is deliberately the simplest possible order-intake path in this doc set: one direct
+connection, not a distribution network.
 
 ---
 
-## 3. TA → payment agent / bank — cash disbursement
+## 4. TA ↔ Fund Accounting — the NAV cycle for a money market fund
 
-### 3.0 Primer — what ACH, NACHA, and Fedwire actually are
+The **Rule 22c-1** forward-pricing dependency and **Rule 2a-4** current-NAV mechanics already
+covered in the intermediary-mediated model still apply unchanged — an order still has to wait for
+the **next NAV computed after receipt**. What's specific to a money market fund and a
+treasury-cash-management client:
 
-These three terms get used interchangeably in casual conversation but name three different things
-— a network, a rule-making body, and a separate Fed system entirely. Worth being precise before
-§3.1–3.2 go into the technical detail:
+- A **Rule 2a-7 government/retail money market fund** targets a stable **$1.00 NAV** using
+  amortized-cost/penny-rounding valuation (`01`, §1, covers this exact mechanic for FOBXX).
+- **Multiple intraday NAV strikes**: money market funds serving institutional cash-management
+  clients commonly strike NAV **more than once a day — typically 2–3 times (morning, midday,
+  afternoon before close)** — specifically so a corporate treasury client can invest or redeem
+  more than once in the same business day rather than waiting for a single end-of-day NAV. Intraday
+  NAV striking requires the TA to apply each distinct NAV to the correct transactions/account
+  balances at the right time of day, with corresponding effects on settlement timing.
+  [ICI — Intraday Processing for Floating NAV Money Market Funds Working Group](https://www.ici.org/ops_mmf_reform/intraday)
+
+The fund-accounting-to-TA NAV feed itself remains **proprietary/vendor-specific** — no named
+industry-standard format, same finding as the intermediary-mediated model.
+
+---
+
+## 5. TA → payment / custodian — cash movement
+
+### 5.1 Fedwire vs. ACH for a corporate treasury client
+
+Both rails remain available, but the emphasis shifts for this client type: a corporate treasury
+client moving substantial cash same-day is exactly Fedwire's use case (real-time gross settlement
+— one transfer at a time, immediate and final). ACH's batch/scheduled-window model (§5.2) is more
+suited to smaller or recurring movements. See the **ACH/NACHA/Fedwire primer** below for what each
+actually is.
+
+### 5.2 Primer — what ACH, NACHA, and Fedwire actually are
 
 - **ACH (Automated Clearing House)** is the **network itself** — the US electronic payment system
   that moves money between bank accounts. It's **batch-based, not real-time**: transactions are
-  collected and settled in scheduled windows rather than one at a time (Same Day ACH narrows that
-  window but doesn't make it instant/real-time the way Fedwire is).
+  collected and settled in scheduled windows (Same Day ACH narrows the window but isn't
+  instant/real-time the way Fedwire is).
 - **NACHA is not the network — it's the rule-maker.** NACHA (National Automated Clearing House
   Association) is a private, nonprofit association that **writes and enforces the ACH Network's
-  operating rules** — this is where the SEC (Standard Entry Class) codes referenced in §3.1
-  (PPD/WEB/CCD) actually come from. NACHA itself never touches or moves any money.
-- **Who actually clears and settles ACH transactions**: two **"ACH Operators"** do the real work of
-  clearing and settling batches under NACHA's rules —
-  - **FedACH**, operated by the Federal Reserve Banks — the only public-sector ACH operator.
-  - **EPN (Electronic Payments Network)**, operated by The Clearing House (owned by ~25 large
-    banks) — the only private-sector ACH operator.
-  The two are fully interoperable and exchange files with each other multiple times a day, so a
-  payment originating at a FedACH-using bank reaches an EPN-using bank's account seamlessly —
-  invisible to the TA, the fund, or the shareholder.
+  operating rules** — including the SEC (Standard Entry Class) codes below. NACHA itself never
+  touches or moves any money.
+- **Who actually clears and settles ACH transactions**: two **"ACH Operators"** do the real work
+  under NACHA's rules — **FedACH** (Federal Reserve Banks, the only public-sector operator) and
+  **EPN (Electronic Payments Network)** (The Clearing House, owned by ~25 large banks, the only
+  private-sector operator). The two are fully interoperable and exchange files multiple times a
+  day.
 - **Fedwire (Fedwire Funds Service)** is a **completely separate Federal Reserve system** — not
-  part of the ACH Network, not governed by NACHA at all. It's a **real-time gross settlement
-  (RTGS)** system: each wire settles individually, immediately, and irrevocably, rather than being
-  batched and net-settled like ACH. This is the "large-dollar wire" rail referenced in §3.2, and
-  it's also the underlying rail beneath NSCC's own net settlement (`06`, §1.3/§3.2 — "Fed funds at
-  NSCC").
+  part of the ACH Network, not governed by NACHA. It's **real-time gross settlement (RTGS)**: each
+  wire settles individually, immediately, and irrevocably.
 
 | | ACH | Fedwire |
 |---|---|---|
-| **Governed by** | NACHA (private rules body) | The Federal Reserve directly (a Fed service, no separate private rulebook) |
-| **Operated by** | FedACH (the Fed) + EPN (The Clearing House) — interoperable | Federal Reserve Banks only |
-| **Settlement style** | Batched, net-settled, scheduled processing windows (Same Day ACH included) | Real-time gross settlement — one transfer at a time, immediate and final |
-| **Typical use in this doc** | Shareholder purchase debits / redemption credits (§3.1) | Large-dollar wires, NSCC's own net settlement (§3.2; `06`) |
+| **Governed by** | NACHA (private rules body) | The Federal Reserve directly |
+| **Operated by** | FedACH (the Fed) + EPN (The Clearing House) | Federal Reserve Banks only |
+| **Settlement style** | Batched, net-settled, scheduled windows | Real-time gross settlement — immediate and final |
+| **Fit for this scenario** | Smaller/recurring treasury movements | **Primary rail** — large, same-day treasury cash management |
 
-[Modern Treasury — A Complete Primer to ACH: Understanding the Four Key Players](https://www.moderntreasury.com/journal/a-complete-primer-to-ach-understanding-the-four-key-players) ·
+[Modern Treasury — A Complete Primer to ACH](https://www.moderntreasury.com/journal/a-complete-primer-to-ach-understanding-the-four-key-players) ·
 [Federal Reserve History — Automated Clearing House Payments](https://www.federalreservehistory.org/essays/automated-clearing-house) ·
 [Wikipedia — FedACH](https://en.wikipedia.org/wiki/FedACH) ·
 [Wikipedia — Electronic Payments Network](https://en.wikipedia.org/wiki/Electronic_Payments_Network) ·
-[Trustpair — What's the Difference Between ACH and Nacha?](https://trustpair.com/blog/difference-between-ach-and-nacha/)
+[JPMorgan — Fedwire ISO 20022 migration](https://www.jpmorgan.com/insights/payments/fx-cross-border/iso-20022-migration)
 
-### 3.1 ACH — no fund-specific NACHA code exists
+### 5.3 NACHA entry classes — still no fund-specific code
 
-**Correcting an assumption**: NACHA Standard Entry Class (SEC) codes are chosen by the *nature of
-the receiver and authorization channel*, not by transaction purpose. There is **no NACHA code
-specific to "mutual fund transaction."** A TA debiting a shareholder's bank account for a purchase,
-or crediting redemption proceeds, uses:
+Confirmed in the earlier version of this doc and unchanged here: NACHA Standard Entry Class codes
+are chosen by **receiver type and authorization channel**, not transaction purpose — there's no
+NACHA code specific to "mutual fund transaction." A corporate-to-corporate ACH movement (where
+used) would typically be **CCD** (Corporate Credit or Debit); a consumer-style debit would be
+PPD/WEB, but those are less likely for a corporate treasury account specifically.
+[Nacha — Company Entry Descriptions](https://www.nacha.org/rules/risk-management-topics-company-entry-descriptions)
 
-- **PPD** (Prearranged Payment and Deposit) — for consumer accounts with a standing/recurring
-  authorization (e.g., a systematic investment plan, `08` §2.3).
-- **WEB** — for consumer debits initiated online/by phone (e.g., a one-off purchase via the
-  investor portal).
-- **CCD** (Corporate Credit or Debit) — for business-to-business movements (e.g., a retirement-plan
-  sponsor's contribution).
+### 5.4 Custodian cash confirmation
 
-[Nacha — Company Entry Descriptions](https://www.nacha.org/rules/risk-management-topics-company-entry-descriptions) ·
-[Modern Treasury — SEC codes](https://www.moderntreasury.com/learn/sec-codes) ·
-[Increase — ACH Standard Entry Class Codes](https://increase.com/documentation/ach-standard-entry-class-codes)
-
-**Worth noting for a 2026-era document**: Nacha Risk Management Rule amendments add two new
-standardized Company Entry Descriptions, **"PAYROLL"** and **"PURCHASE,"** effective March 20,
-2026 — "PURCHASE" could plausibly apply to a fund-purchase debit, but no source was found
-explicitly tying it to mutual fund transactions specifically. **Flag as an unverified potential
-application**, not a confirmed one.
-
-### 3.2 Fedwire — large-dollar wires, now on ISO 20022
-
-Confirmed as the mechanism for large-dollar wire disbursements and for the underlying settlement
-banking layer beneath NSCC's own net settlement (`06`, §1.3/§3.2, "Fed funds at NSCC" / National
-Settlement Service). **Current development worth flagging**: the Federal Reserve's Fedwire Funds
-Service **migrated to ISO 20022 messaging in July 2025**, for both domestic and cross-border
-transfers. [JPMorgan — ISO 20022 migration](https://www.jpmorgan.com/insights/payments/fx-cross-border/iso-20022-migration)
-
-### 3.3 SWIFT interbank messages (MT202/MT103, pacs.008/pacs.009) — likely not used domestically
-
-Your instinct that SWIFT interbank messaging would be over-engineering for ordinary US domestic
-fund settlement is well-founded: no evidence was found of MT202/MT103 or their ISO 20022
-successors (pacs.008/pacs.009) being used in day-to-day US TA cash operations, which run on
-Fedwire, ACH, and NSCC's National Settlement Service instead. SWIFT interbank messaging is for
-cross-border wires, atypical for a US-only fund. **This is an absence-of-evidence inference, not a
-sourced negative statement** — don't present it as a confirmed "US TAs never use SWIFT," just as
-"no evidence found of routine use."
-
-### 3.4 Custodian cash statements — MT940/942 → camt.053/052
-
-Confirmed and directly applicable to custodian-to-TA/fund cash position reporting:
-
-- **MT940 / camt.053** — end-of-day statement with final booked balances (the reconciliation
-  format — this is what a TA would use to confirm the prior day's cash movements actually settled).
-- **MT942 / camt.052** — intraday statement updates (useful for same-day visibility before
-  end-of-day finality).
-
-camt.053 is the ISO 20022 successor to MT940. [camt.052 vs 053 vs 054 explainer](https://validatefin.com/en/blog/camt-052-vs-053-vs-054) ·
-[MT940 to ISO 20022 migration](https://treasuryxl.com/blog/the-future-of-financial-messaging-migrating-from-mt940-to-iso-20022/) ·
-[PaymentBrief camt overview](https://paymentbrief.com/articles/camt-052-053-054-account-reporting-reference/)
-
-**Caveat**: the formats' general banking application is well documented; a source specifically
-naming a *US mutual fund custodian* using MT940/camt.053 with a TA by name wasn't found — this is
-an analogy from general banking practice, not a directly cited fund-specific instance.
-
-### 3.5 DTCC Payment aXis — narrower than shareholder disbursement
-
-Worth an explicit correction here: **DTCC Payment aXis (`06`, §3.2) settles commissions and
-mutual fund fees** (12b-1 trails, retirement-plan fees) between fund companies/TAs and
-broker-dealers via NSCC net settlement — **it is not the mechanism for paying redemption proceeds
-to individual shareholders.** Don't conflate the two. [DTCC Payment aXis](https://www.dtcc.com/wealth-management-services/mutual-fund-services/dtcc-payment-axis)
+Unchanged from the intermediary-mediated model: the custodian confirms cash movements via
+end-of-day **MT940/camt.053** (final booked balances) or intraday **MT942/camt.052** statements —
+this leg doesn't depend on NSCC/DTCC either.
 
 ---
 
-## 4. TA ↔ NSCC — order confirmation, position reconciliation, fee settlement
+## 6. Shareholder reporting / IRS reporting
 
-Already covered in full technical depth in `06` — cross-referenced here for sequencing purposes
-only:
-
-- **Fund/SERV** (§1.1 above): order entry/confirmation/net settlement.
-- **Networking** (`06`, §2): Activity Report (financial) and Account Maintenance & Reconciliation
-  (non-financial) — the exact split this doc's companion, `08`, is built around.
-- **ACATS-Fund/SERV** (`06`, §1.5): account-level position transfers between firms.
-- **DTCC Payment aXis / Commission Settlement** (`06`, §3.2, and §3.5 above): fee/commission
-  settlement, distinct from shareholder cash movement.
+Trade confirmations and account statements work the same as the general case (`08`, §1). The tax
+reporting mechanics are where a domestic corporate investor genuinely differs — covered in full in
+§8.7 below, but the headline: **the fund is generally not required to issue a 1099-DIV to a
+corporation at all**, regardless of distribution amount, unless backup withholding was actually
+triggered on that payment.
 
 ---
 
-## 5. TA → custodian — trade instructions and position reconciliation
+## 7. What's deliberately excluded from this doc
 
-The custodian (`07`, §3) holds the fund's actual cash and securities. The TA's role here is
-narrower than with fund accounting: the TA reports the day's **aggregate cash need** (net
-subscriptions/redemptions, per §2.3) so the custodian can fund the corresponding wire/ACH
-disbursements, and receives back the cash-position confirmations described in §3.4
-(MT940/942 → camt.053/052). No fund-specific standardized message format for the TA-to-custodian
-instruction leg itself was independently verified in this research pass — treat this leg the same
-way as §2 (proprietary/vendor file feed, likely intra-firm when custodian and TA share a servicer).
-
----
-
-## 6. Shareholder reporting — TA → investor / IRS
-
-- **Trade confirmations**: sent to the shareholder (and, per §1, back through Fund/SERV or setr to
-  the distributor) after each transaction.
-- **Periodic account statements**: monthly/quarterly summaries reflecting the balance-file state
-  (`08`, §1).
-- **Tax forms**, confirmed via IRS instructions:
-  - **1099-DIV** — dividends/distributions, issued for ≥$10 of taxable income (`08`, §2.2).
-  - **1099-B** — share sale/redemption proceeds, with cost-basis reporting under §6045 (`05`, §3;
-    `08`, §2.4).
-  - **1099-R** — retirement-account distributions (`08`, §2.3).
-  - **5498** — IRA contribution reporting.
-  [IRS Form 1099-B Instructions](https://www.irs.gov/instructions/i1099b) ·
-  [IRS Forms 1099-R and 5498 Instructions](https://www.irs.gov/instructions/i1099r) ·
-  [IRS 1099-DIV FAQ](https://www.irs.gov/faqs/interest-dividends-other-types-of-income/1099-div-dividend-income/1099-div-dividend-income)
-
----
-
-## 7. Other TA data flows
-
-- **AML/CIP** (`05`, §3): Section 326 of the USA PATRIOT Act required the joint SEC/FinCEN rule
-  imposing Customer Identification Program obligations on mutual funds, including OFAC screening
-  and SAR-filing procedures. No specific message-format standard was found for a TA's SAR/CTR
-  filing to FinCEN beyond FinCEN's own e-filing system — flagged as a gap, not researched to
-  format-level detail here. [SEC — Customer Identification Programs for Mutual Funds](https://sec.gov/rules/2003/04/customer-identification-programs-mutual-funds) ·
-  [SEC AML Source Tool for Mutual Funds](https://www.sec.gov/about/divisions-offices/division-examinations/amlmfsourcetool)
-- **Escheatment** (`05`, §3; `06`, §5.4): NAUPA publishes the **NAUPA II / NAUPA III standard
-  electronic file format**, used by holders (including TAs) to report unclaimed mutual fund
-  property to state administrators, with a dedicated field for Fund Family Name.
-  [NAUPA Standard Electronic File Format](https://unclaimed.org/wp-content/uploads/NAUPAStandardElectronicFileFormat-11.20.19.pdf) ·
-  [NAUPA III File Format Draft](https://unclaimed.org/wp-content/uploads/NAUPA-III-File-Format-Review-Draft-1.4.pdf)
-- **Board/administrator reporting**: not substantively researched in this pass — flagged as an open
-  gap. Likely centers on ICA §15(c) board-oversight obligations (`07`, §2) and the "Super Sheet"
-  control-book reconciliation described in `08`, §1.6, but wasn't verified to message-format detail
-  here.
+Per the scope change at the top: **NSCC Fund/SERV, ACATS-Fund/SERV, DTCC Networking (Activity
+Report, Position Files, B50/B51/B52/F55 records), MFPS I/II, DTCC Payment aXis, and SWIFT `setr.*`
+messages** are all absent from this document on purpose. None of them apply to a direct-at-fund
+relationship between a corporate treasury client and the TA — they all exist to serve
+broker-dealer/intermediary-mediated distribution or cross-border order routing, neither of which
+is present here. That entire intermediary-mediated model is fully documented in `06` if you need
+it for a different distribution channel.
 
 ---
 
 ## 8. Scenarios — trigger and steps
 
-Every scenario below follows the same shape: **what starts it**, then a simple numbered
-`Entity → Entity: what happens` walkthrough. Detail and citations for each individual fact live in
-the earlier sections/docs referenced inline — this section is deliberately kept light so the
-sequence itself stays easy to follow.
+Same format as before: **what starts it**, then a simple `Entity → Entity: what happens` list.
 
 ### 8.1 Scenario: Subscription (purchase) order
 
-**Trigger**: investor places a buy order.
+**Trigger**: corporate treasury client wants to invest cash into the fund.
 
-1. Investor → Portal/Distributor: places the order.
-2. Portal/Distributor → TA: order arrives via **Fund/SERV 001 Order** (US domestic, §1.1) or
-   **setr.010.001 Subscription Order** (cross-border, §1.2).
-3. TA: validates the order (KYC/AML per §7, account status, minimum investment, blue-sky
-   eligibility per `07` §17) — **cannot price it yet**.
-4. Fund Accounting → TA: sends the day's NAV once struck after market close (Rule 22c-1 forward
-   pricing, §2.1) — via the proprietary, unstandardized feed described in §2.2.
-5. TA: prices the order at that NAV, calculates shares issued, posts the transaction — this is
-   simultaneously an **activity file credit** and a **balance file update** (`08`, §1).
-6. TA → Portal/Distributor: sends confirmation (**Fund/SERV** confirm or **setr.012.001**).
-7. TA → Fund Accounting: reports the day's aggregate net inflow (§2.3) so incoming cash gets
-   invested appropriately.
-8. TA/Payment Agent → Investor's bank: debits the purchase amount via **ACH (PPD/WEB, §3.1)** or
-   receives it via **Fedwire (§3.2)**.
-9. Custodian → TA: confirms the cash receipt via an end-of-day **MT940/camt.053** statement (§3.4).
-10. TA → Shareholder: sends the trade confirmation statement (§6).
+1. Corporate Treasury Client → Investor Portal: submits a purchase order.
+2. Investor Portal → TA: order arrives directly (no intermediary/NSCC hop, §3).
+3. TA: validates the order (KYC/AML per §2, account status) — **cannot price it yet**.
+4. Fund Accounting → TA: sends the applicable NAV once struck — possibly one of several intraday
+   strikes for this fund type (§4).
+5. TA: prices the order at that NAV, calculates shares issued, posts the transaction — an
+   **activity file credit** and a **balance file update** simultaneously (`08`, §1).
+6. TA → Investor Portal: sends confirmation directly back to the client.
+7. TA → Fund Accounting: reports the net inflow so incoming cash gets invested appropriately.
+8. TA/Payment System → Client's bank: receives the cash via **Fedwire** (primary, §5.1) or ACH
+   (secondary, §5.3).
+9. Custodian → TA: confirms the cash receipt via **MT940/camt.053** (§5.4).
+10. TA → Client: sends the trade confirmation statement (§6).
 
 ### 8.2 Scenario: Redemption order
 
-**Trigger**: investor requests a sale/withdrawal.
+**Trigger**: corporate treasury client needs cash back from the fund.
 
-1. Investor → Portal/Distributor: requests redemption.
-2. Portal/Distributor → TA: order arrives via **Fund/SERV 001 Order** (sell side) or
-   **setr.004.001 Redemption Order**.
-3. TA: validates the order, waits for the day's NAV (same Rule 22c-1 dependency as §8.1).
-4. TA: prices the redemption, debits the shareholder's share balance (`08`, §1), confirms via
-   **Fund/SERV** or **setr.006.001 Redemption Order Confirmation**.
-5. TA → Fund Accounting: reports the day's aggregate net outflow (§2.3) — may trigger a security
-   sale if the fund's cash buffer is insufficient (Rule 22e-4 liquidity management).
-6. Custodian → TA/Payment Agent: funds the disbursement.
-7. TA/Payment Agent → Investor's bank: pays proceeds via **ACH credit** or **Fedwire** (§3.1/§3.2).
-   **Hard deadline: within 7 calendar days of tender (ICA §22(e))** — the only exception is a
-   temporary hold under a 2018 SEC no-action letter when elder/vulnerable-adult financial
-   exploitation is suspected.
+1. Corporate Treasury Client → Investor Portal: submits a redemption request.
+2. Investor Portal → TA: order arrives directly.
+3. TA: validates the order, waits for the applicable NAV (same dependency as §8.1).
+4. TA: prices the redemption, debits the client's share balance (`08`, §1).
+5. TA → Fund Accounting: reports the net outflow — may trigger a security sale if the fund's cash
+   buffer is insufficient (Rule 22e-4 liquidity management).
+6. Custodian → TA/Payment System: funds the disbursement.
+7. TA/Payment System → Client's bank: pays proceeds, typically via **Fedwire** given the treasury
+   context and likely same-day expectation. **Hard deadline: within 7 calendar days of tender (ICA
+   §22(e))** — in practice, same-day or next-day for a treasury cash-management fund, well inside
+   that statutory ceiling.
    [SEC No-Action Letter, ICI, June 1 2018](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm)
-8. TA → Shareholder Reporting: generates the redemption confirmation now, and the **1099-B**
-   cost-basis report at year-end (§6).
+8. TA → Client: generates the redemption confirmation now; a 1099-B is generally **not** required
+   for a corporate holder (see the general corporate-exemption logic in §8.7 — 1099-B follows a
+   similar exempt-recipient pattern to 1099-DIV for corporations, though this doc's primary
+   research focused on the dividend/distribution side).
 
 ### 8.3 Scenario: Dividend distribution (cash)
 
-**Trigger**: fund declares a dividend; a shareholder's account is elected for cash payout.
+**Trigger**: fund declares a dividend; the corporate account is elected for cash payout.
 
-1. Fund Board/Accounting → TA: declares the dividend rate and record/ex/payable dates (`07`, §2),
-   transmitted via the same unstandardized feed as §2.2.
-2. TA: calculates each shareholder's dividend amount (shares held as of record date × rate) and
-   checks the account's distribution election — **this account is set to Cash** (a non-financial
-   maintenance attribute, `08` §3).
-3. TA → Payment Agent/Bank: instructs disbursement via **ACH (PPD, §3.1)** or check.
-4. Payment Agent → Shareholder's bank: pays the cash amount.
-5. TA → Fund Accounting: reports the total cash paid out so the fund's NAV/cash position reflects
-   the distribution correctly.
+1. Fund Board/Accounting → TA: declares the dividend rate and record/ex/payable dates (`07`, §2).
+2. TA: calculates the client's dividend amount (shares held as of record date × rate); the
+   account's election is **Cash**.
+3. TA → Payment System: instructs disbursement via **Fedwire** (typical for a treasury account) or
+   ACH.
+4. Payment System → Client's bank: pays the cash amount.
+5. TA → Fund Accounting: reports the total cash paid out.
 6. TA → Shareholder Reporting: posts the payment to the activity file/balance file and the
-   shareholder's account statement (`08`, §1).
-7. TA → IRS Reporting (year-end): includes the amount on **Form 1099-DIV, Box 1a** (Total Ordinary
-   Dividends) for any shareholder receiving ≥$10 across the year (`08`, §2.2).
+   client's account statement (`08`, §1).
+7. TA → IRS Reporting (year-end): **only if** backup withholding applied on this payment (see
+   §8.7) — otherwise, per the corporate exemption, **no 1099-DIV is required for this
+   distribution at all**.
 
 ### 8.4 Scenario: Dividend reinvestment
 
-**Trigger**: same dividend declaration as §8.3, but the shareholder's account is elected to
-reinvest.
+**Trigger**: same dividend declaration as §8.3, account elected to reinvest — the more common
+default for a treasury cash-sweep arrangement, where the point is to keep idle cash working rather
+than pull it out.
 
-1. Fund Board/Accounting → TA: same dividend rate/date declaration as §8.3, step 1.
-2. TA: calculates the shareholder's dividend amount; the account's election is **Reinvest**.
+1. Fund Board/Accounting → TA: same dividend declaration as §8.3, step 1.
+2. TA: calculates the client's dividend amount; the account's election is **Reinvest**.
 3. TA: uses the dividend amount to buy new shares at the current NAV — **no cash leaves the
-   fund**. This posts as a credit to both the activity file and the balance file (`08`, §1), and
-   creates a **new cost-basis lot** for the newly issued shares.
+   fund**; posts as a credit to both the activity file and balance file (`08`, §1), with a new
+   cost-basis lot for the new shares.
 4. TA → Fund Accounting: reports the total dividends reinvested (shares issued, no net cash
-   impact on the fund).
-5. TA → Shareholder Reporting: updates the account's share balance and statement to reflect the
-   new shares.
-6. TA → IRS Reporting (year-end): still reports the reinvested amount on **Form 1099-DIV, Box
-   1a** — **reinvesting doesn't make a dividend non-taxable**; the shareholder owes tax on it the
-   same as a cash payout, even though no cash reached their bank account.
+   impact).
+5. TA → Shareholder Reporting: updates the account's share balance and statement.
+6. TA → IRS Reporting (year-end): same exemption logic as §8.3 — reinvesting doesn't change
+   whether a 1099-DIV is required; that still turns on backup-withholding status (§8.7), not on
+   the cash-vs-reinvest election.
 
 ### 8.5 Scenario: Capital gain distribution (cash)
 
-**Trigger**: fund declares a capital gain distribution; account elected for cash.
+**Trigger**: fund declares a capital gain distribution — **worth flagging as unusual for this
+specific fund type**: a stable-NAV, Rule 2a-7 government/retail money market fund using
+amortized-cost valuation rarely realizes meaningful capital gains, since it generally holds
+short-term instruments to maturity rather than trading them for gains. This scenario is included
+for completeness (and would be far more routine for a floating-NAV or longer-duration fund), but
+don't expect it to be a regular event for the specific fund modeled in this doc.
 
-Mechanically identical to §8.3 (dividend distribution, cash), with one tax difference at the last
-step:
-
-1–6. Same steps as §8.3, steps 1–6 (substitute "capital gain distribution" for "dividend").
-7. TA → IRS Reporting (year-end): includes the amount on **Form 1099-DIV, Box 2a** (Total Capital
-   Gain Distributions) — **always reported as long-term, regardless of the fund's actual holding
-   period** for the underlying securities sold (`08`, §2.2). Short-term gains realized by the fund
-   instead flow into Box 1a as ordinary dividends.
+1–6. Same steps as §8.3 (substitute "capital gain distribution" for "dividend").
+7. TA → IRS Reporting (year-end): if required at all (same corporate-exemption logic as §8.3),
+   reported on **Form 1099-DIV, Box 2a** (Total Capital Gain Distributions — always long-term
+   regardless of the fund's actual holding period, per `08`, §2.2).
 
 ### 8.6 Scenario: Capital gain reinvestment
 
-**Trigger**: same capital gain declaration as §8.5, but the account is elected to reinvest.
+**Trigger**: same rare capital gain declaration as §8.5, account elected to reinvest. Mechanically
+identical to §8.4 — new shares purchased at current NAV, new cost-basis lot, no cash leaves the
+fund — with the same "unusual for this fund type" caveat as §8.5.
 
-Mechanically identical to §8.4 (dividend reinvestment) — new shares purchased at current NAV, new
-cost-basis lot created, no cash leaves the fund — except the year-end tax reporting step uses
-**Form 1099-DIV, Box 2a** instead of Box 1a.
+### 8.7 Scenario: Tax certification for a domestic corporate investor
 
-### 8.7 Scenario: Tax withholding on a distribution
+**Trigger**: a distribution is payable to the corporate treasury client, and the TA needs to
+determine what (if any) withholding and reporting applies. This is the scenario that runs through
+Account Opening → Accounting → Payments → Shareholder Reporting → IRS Reporting — reworked here
+for a domestic corporation rather than the general case.
 
-**Trigger**: a distribution (dividend or capital gain, cash or reinvest) is payable to a
-shareholder whose tax certification requires withholding — either a **missing/invalid Form W-9**
-(triggers backup withholding) or a **non-US shareholder's Form W-8BEN** (triggers NRA
-withholding). This is the scenario that runs through accounting, payments, shareholder reporting,
-*and* IRS reporting in one pass:
+**Branch A — valid Form W-9 on file, exempt payee status properly claimed** (the expected case for
+a properly onboarded corporate treasury account):
 
-1. TA: at distribution-calculation time, checks the shareholder's tax certification status on file
-   (W-9/W-8BEN — a non-financial maintenance attribute, `08` §3).
-2. TA: determines the applicable withholding —
-   - **Backup withholding**: **24%** of the gross distribution, required when a US person's TIN is
-     missing/invalid, the IRS has flagged the TIN as incorrect, or there's a certification
-     failure (governed by IRC §3406).
-   - **NRA (nonresident alien) withholding**: **30%** of the gross distribution by default under
-     Chapter 3, or a lower **treaty-reduced rate** if the shareholder's W-8BEN claims one.
-3. TA: computes the **gross distribution**, the **withheld amount**, and the **net amount payable**
-   to the shareholder.
-4. TA → Fund Accounting: reports all three figures — gross distribution, amount withheld, and net
-   payable — so the fund's accounting reflects the full distribution obligation, with the withheld
-   portion earmarked for the IRS rather than the shareholder.
-5. TA/Payment Agent → Shareholder's bank: pays only the **net (after-withholding) amount** via ACH
-   or check.
-6. TA/Payment Agent → IRS: remits the **withheld amount** separately, via the **Electronic Federal
-   Tax Payment System (EFTPS)** — this isn't a per-shareholder payment, it's a periodic deposit
-   covering all withholding collected across shareholders.
-7. TA → Shareholder Reporting: reflects the **gross** distribution and the **withheld** amount
-   (not just the net payment) on the shareholder's activity file and account statement — the
-   shareholder needs to see both figures to reconcile their own tax return.
-8. TA → IRS Reporting (year-end):
-   - **Backup withholding** (US persons): reported on **Form 1099-DIV** — gross distribution in
-     the income box (1a or 2a), withheld amount in the federal income tax withheld box. The payer
-     also separately reports and remits total backup withholding via **Form 945**.
-   - **NRA withholding** (non-US persons): reported on **Form 1042-S**, not 1099-DIV — gross
-     income and withheld tax, filed instead of/in addition to the standard 1099 series since the
-     recipient isn't a US taxpayer for 1099 purposes.
-   - Either way, the shareholder uses the withheld-amount figure to claim a credit for tax already
-     paid on their own return — the withholding isn't a separate loss, it's a prepayment.
+1. TA (at account opening, §2): confirms the corporation furnished a valid **Form W-9** with the
+   correct exempt-payee code for interest/dividend-type payments.
+2. TA (at each distribution): confirms this certification is still current — no backup withholding
+   applies.
+3. TA → Fund Accounting: reports the **gross distribution** — gross and net are the same amount
+   here, since nothing is withheld.
+4. TA/Payment System → Client's bank: pays the **full gross amount**.
+5. TA → Shareholder Reporting: reflects the full distribution on the account statement.
+6. TA → IRS Reporting (year-end): **the fund is not required to file Form 1099-DIV for dividends
+   paid to a C corporation, S corporation, or most tax-exempt organizations, regardless of the
+   amount** — this exemption is unconditional on amount (unlike the individual-investor $10
+   threshold) but is **overridden the moment backup withholding is actually applied** on a
+   payment, or if liquidation proceeds reach ≥$600 (a narrower trigger not relevant to routine
+   dividend/cap-gain distributions).
 
-[Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) (general
-mechanics overview, cross-checked against IRS guidance below) ·
-[IRS — Withholding and Reporting Obligations](https://www.irs.gov/individuals/international-taxpayers/withholding-and-reporting-obligations) ·
-[IRS Publication 515 — Withholding of Tax on Nonresident Aliens and Foreign Entities](https://www.irs.gov/publications/p515)
+**Branch B — no valid W-9 on file** (e.g., certification lapsed, TIN mismatch — the exemption
+requires an affirmative, valid certification; it isn't automatic just because the payee happens to
+be a corporation):
+
+1. TA: detects the missing/invalid certification at distribution-calculation time.
+2. TA: applies standard **backup withholding at 24%** of the gross distribution (IRC §3406) — the
+   same mechanism that would apply to any payee, corporate or not, lacking a valid TIN
+   certification.
+3. TA → Fund Accounting: reports gross distribution, amount withheld, and net payable.
+4. TA/Payment System → Client's bank: pays only the **net (after-withholding)** amount.
+5. TA/Payment System → IRS: remits the withheld amount via the **Electronic Federal Tax Payment
+   System (EFTPS)** — a periodic deposit, not a per-payment remittance.
+6. TA → Shareholder Reporting: reflects both the gross distribution and the withheld amount.
+7. TA → IRS Reporting (year-end): **Form 1099-DIV is now required** despite the corporate
+   exemption in Branch A, specifically because backup withholding occurred — gross distribution in
+   the income box, withheld amount in the federal income tax withheld box, plus the payer's own
+   **Form 945** filing for total backup withholding remitted across all payees.
+
+Note: **NRA (nonresident alien) withholding and Form 1042-S never apply in this scenario** — the
+investor is explicitly a domestic US corporation, not a foreign person, so Chapter 3 withholding
+is out of scope entirely here (it would apply to a foreign corporate or individual investor
+instead, a different scenario this doc doesn't model).
+
+[Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) ·
+[IRS Instructions for the Requester of Form W-9](https://www.irs.gov/instructions/iw9) ·
+[BoomTax/LegalClarity summaries of 1099-DIV corporate exemption](https://legalclarity.org/do-corporations-get-1099-forms/)
+(secondary sources summarizing IRS Form 1099-DIV instructions — corporate exemption itself is
+standard IRS guidance, cross-checked across multiple summaries agreeing on the same rule)
 
 ---
 
 ## 9. Flagged gaps / not independently verified
 
-Given how much of this document depends on getting specific message codes right, this list is
-longer and more load-bearing than in prior docs — **do not fill these gaps with assumptions**:
-
-1. **Any specific legacy ISO 15022 MT code** dedicated to investment fund orders — not confirmed;
-   describe the legacy layer generically only.
-2. **`setr.020`** — does not appear to exist in the current setr catalogue; don't use it.
-3. **A NACHA SEC code specific to "mutual fund transactions"** — does not exist; use PPD/WEB/CCD
-   per the receiver/channel, not a fund-specific code. The new 2026 "PURCHASE" Company Entry
-   Description is plausible but not confirmed for fund use.
-4. **A named standard file format for NAV transmission** (fund accounting → TA) — still
-   proprietary/vendor-specific internally (e.g., Milestone Group). **Partially resolved**: the
-   *next* leg, TA/fund → intermediary, does have a named standard — **NSCC MFPS I — Price/Rate**,
-   with a confirmed daily cutoff at cycle 98/10:45 p.m. ET. See `06`, §2.6.
-5. **A named standard format for TA → fund-accounting aggregate net-flow reporting** —
-   directionally confirmed as a real process, format unconfirmed.
-6. **Whether US TAs affirmatively never use SWIFT MT103/pacs.008** — absence-of-evidence
-   inference, not a sourced negative.
-7. ~~Content of the ICI market-close operations PDF~~ — **resolved**: read in full; see `06`,
-   §2.4–2.6 and `08`'s AM/PM accrual mechanics for what it confirmed (Networking's B50/B51/B52/F55
-   record types, ACATS-Fund/SERV's two-business-day acknowledgment rule and Mutual Fund Cleanup
-   consequence, Reject Code 016, and MFPS I's role as the standard NAV/rate distribution channel).
-   DTCC's own Fund/SERV/Networking lifecycle diagram PDFs remain unread.
-8. **DTCC's timeline/scope for an ISO 20022 interface layered onto Fund/SERV** — mentioned in
-   secondary summaries, not confirmed against a primary DTCC page with dates.
-9. **Board/administrator reporting formats** — not researched to message-format detail.
-10. **Custodian use of MT940/camt.053 specifically in a mutual fund context** — the formats'
-    general banking application is well sourced; fund-custody-specific usage is an analogy, not a
-    directly cited instance.
-11. **TA → FinCEN SAR/CTR filing format** — not researched beyond confirming FinCEN's own e-filing
-    system exists.
+- Whether 1099-B for redemption proceeds follows the exact same corporate-exemption pattern as
+  1099-DIV — the research for this pass focused on the dividend/distribution side; §8.2's note on
+  this is a reasonable inference from the general "exempt recipient" concept in IRS reporting
+  rules, not independently confirmed against the 1099-B instructions specifically.
+  See `05`, §3 and `08`, §2.4 for the general 1099-B/cost-basis framework this would sit within.
+- Exact mechanics of a corporate treasury client's investor-portal technology (whether TA-hosted,
+  fund-complex-hosted, or integrated via a separate treasury management system) — described
+  generically here by analogy to the documented BENJI/FOBXX Institutional Web Portal model (`01`,
+  §5), not independently verified for money market funds generally.
+- Whether *all* Rule 2a-7 government/retail money market funds offering direct institutional
+  access strike multiple intraday NAVs, or only some — the ICI source describes this as common
+  practice for funds serving cash-management clients, not a universal requirement.
 
 ## Sources
 
-- [Redemption Order (setr.004.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-004-001-Redemption-Order.html) · [Redemption Order Confirmation (setr.006.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-006-001-Redemption-Order-Confirmation.html) · [Subscription Order (setr.010.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-010-001-Subscription-Order.html) · [Subscription Order Confirmation (setr.012.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-012-001-Subscription-Order-Confirmation.html) · [Switch Order (setr.013.001)](https://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-013-001-Switch-Order.html) · [full setr catalogue](https://www.iotafinance.com/en/SWIFT-ISO20022-Business-area-setr-Securities-Trade.html) · [setr.065.001](http://www.iotafinance.com/en/SWIFT-ISO20022-Message-setr-065-001-Investment-Fund-Order-Cancellation-Request.html)
-- [SWIFT Standards MX Funds Message Definition Report](https://www2.swift.com/knowledgecentre/rest/v1/publications/stdsmx_funds_mdrs/8.0/SR2022_MX_Funds_MDR1_Standards.pdf) · [SWIFT Investment Funds ISO 20022 training](https://www.swift.com/myswift/services/training/swift-training-catalogue/browse-swift-training-catalogue/investment-funds-iso-20022-messages) · [SWIFT Category 5 MDR](https://www2.swift.com/knowledgecentre/rest/v1/publications/us5md_20210723/2.0/us5md_20210723.pdf)
-- [DTCC Fund/SERV](https://dtcclearning.com/products-and-services/mutual-fund-services/fund-serv.html) · [DTCC Settlement Transformation FAQ](https://www.dtcc.com/initiatives/Content/2-sett_trans_faqs/2_sett_trans_faq.htm) · [ISO 20022 adoption initiatives report](https://www.iso20022.org/sites/default/files/2020-03/ISOInitiatives_July2018.pdf) · [DTCC Payment aXis](https://www.dtcc.com/wealth-management-services/mutual-fund-services/dtcc-payment-axis)
-- [17 CFR 270.22c-1, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.22c-1) · [SEC 2003 Amendments to Pricing Rules](https://www.sec.gov/rules-regulations/2003/12/amendments-rules-governing-pricing-mutual-fund-shares) · [17 CFR 270.2a-4, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.2a-4) · [ICI FAQs: Mutual Fund Share Pricing](https://www.ici.org/faqs/faq/mfs/faqs_navs)
-- [Milestone Group NAV Unit Pricing](https://www.milestonegroup.com/solutions/fund-processing/nav-unit-pricing) · [ICI — Mutual Fund Operations Planning Guide for an Early Market Close](https://www.ici.org/system/files/attachments/pdf/19_ppr_marketclose.pdf)
-- [Nacha — Company Entry Descriptions](https://www.nacha.org/rules/risk-management-topics-company-entry-descriptions) · [Modern Treasury — SEC codes](https://www.moderntreasury.com/learn/sec-codes) · [Increase — ACH SEC Codes](https://increase.com/documentation/ach-standard-entry-class-codes)
-- [Modern Treasury — A Complete Primer to ACH: Understanding the Four Key Players](https://www.moderntreasury.com/journal/a-complete-primer-to-ach-understanding-the-four-key-players) · [Federal Reserve History — Automated Clearing House Payments](https://www.federalreservehistory.org/essays/automated-clearing-house) · [Wikipedia — FedACH](https://en.wikipedia.org/wiki/FedACH) · [Wikipedia — Electronic Payments Network](https://en.wikipedia.org/wiki/Electronic_Payments_Network) · [Trustpair — ACH vs. Nacha](https://trustpair.com/blog/difference-between-ach-and-nacha/)
+- [31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) · [Cornell LII mirror](https://www.law.cornell.edu/cfr/text/31/1010.230)
+- [FinCEN — CDD Rule FAQs](https://www.fincen.gov/resources/statutes-and-regulations/cdd-rule-faqs)
+- [FinCEN Order — Exceptive Relief from Repeat Beneficial Ownership Verification, Feb 13 2026](https://www.fincen.gov/system/files/2026-02/FinCEN-Order-CCDExceptiveRelief.pdf)
+- [17 CFR 270.22c-1, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.22c-1) · [17 CFR 270.2a-4, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.2a-4)
+- [ICI — Intraday Processing for Floating NAV Money Market Funds Working Group](https://www.ici.org/ops_mmf_reform/intraday)
+- [Modern Treasury — A Complete Primer to ACH: Understanding the Four Key Players](https://www.moderntreasury.com/journal/a-complete-primer-to-ach-understanding-the-four-key-players) · [Federal Reserve History — Automated Clearing House Payments](https://www.federalreservehistory.org/essays/automated-clearing-house) · [Wikipedia — FedACH](https://en.wikipedia.org/wiki/FedACH) · [Wikipedia — Electronic Payments Network](https://en.wikipedia.org/wiki/Electronic_Payments_Network)
+- [Nacha — Company Entry Descriptions](https://www.nacha.org/rules/risk-management-topics-company-entry-descriptions)
 - [JPMorgan — Fedwire ISO 20022 migration](https://www.jpmorgan.com/insights/payments/fx-cross-border/iso-20022-migration)
-- [camt.052 vs 053 vs 054 explainer](https://validatefin.com/en/blog/camt-052-vs-053-vs-054) · [MT940 to ISO 20022 migration](https://treasuryxl.com/blog/the-future-of-financial-messaging-migrating-from-mt940-to-iso-20022/) · [PaymentBrief camt overview](https://paymentbrief.com/articles/camt-052-053-054-account-reporting-reference/)
-- [SEC No-Action Letter, ICI, June 1 2018 (ICA §22(e))](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm) · [SEC Committee of Annuity Insurers §22(e) materials](https://www.sec.gov/investment/cai-22e-041124)
-- [SEC — Customer Identification Programs for Mutual Funds](https://sec.gov/rules/2003/04/customer-identification-programs-mutual-funds) · [SEC AML Source Tool for Mutual Funds](https://www.sec.gov/about/divisions-offices/division-examinations/amlmfsourcetool)
-- [NAUPA Standard Electronic File Format](https://unclaimed.org/wp-content/uploads/NAUPAStandardElectronicFileFormat-11.20.19.pdf) · [NAUPA III File Format Draft](https://unclaimed.org/wp-content/uploads/NAUPA-III-File-Format-Review-Draft-1.4.pdf)
-- [IRS Form 1099-B Instructions](https://www.irs.gov/instructions/i1099b) · [IRS Forms 1099-R and 5498 Instructions](https://www.irs.gov/instructions/i1099r) · [IRS 1099-DIV FAQ](https://www.irs.gov/faqs/interest-dividends-other-types-of-income/1099-div-dividend-income/1099-div-dividend-income)
-- [Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) · [IRS — Withholding and Reporting Obligations](https://www.irs.gov/individuals/international-taxpayers/withholding-and-reporting-obligations) · [IRS Publication 515 — Withholding of Tax on Nonresident Aliens and Foreign Entities](https://www.irs.gov/publications/p515)
+- [camt.052 vs 053 vs 054 explainer](https://validatefin.com/en/blog/camt-052-vs-053-vs-054) · [MT940 to ISO 20022 migration](https://treasuryxl.com/blog/the-future-of-financial-messaging-migrating-from-mt940-to-iso-20022/)
+- [SEC No-Action Letter, ICI, June 1 2018 (ICA §22(e))](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm)
+- [Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) · [IRS Instructions for the Requester of Form W-9](https://www.irs.gov/instructions/iw9) · [LegalClarity — Do Corporations Get a 1099?](https://legalclarity.org/do-corporations-get-1099-forms/) · [BoomTax — 1099-DIV Filing Threshold](https://boomtax.com/tax-forms/what-is-1099-div-reporting-threshold)
