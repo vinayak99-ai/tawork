@@ -15,6 +15,7 @@ Funds covered:
 | [04](./04-ousg-ondo-and-wisdomtree.md) | OUSG (Ondo Short-Term US Government Treasuries) + WTGXX (WisdomTree) | Ondo Finance / WisdomTree |
 | [05](./05-transfer-agent-deep-dive.md) | Deep dive: the traditional (non-tokenized) transfer agent — registration, the Rule 17Ad- series, annual SEC filings, core activities, and real enforcement-backed risks | N/A — regulatory baseline |
 | [06](./06-dtcc-nscc-fund-serv-and-networking.md) | Deep dive: DTCC/NSCC infrastructure — Fund/SERV, Networking, ACATS-Fund/SERV, the broader DTCC mutual-fund tool catalog, and where DTC's tokenization pilot does (and doesn't) intersect with tokenized mutual funds | N/A — regulatory baseline |
+| [07](./07-mutual-fund-ecosystem-entities.md) | The full mutual fund ecosystem — sponsor/adviser, board, custodian, fund admin/accounting, underwriter, auditor, pricing services, securities lending, proxy voting vs. solicitation, rating agencies, printers, fidelity bonds, index providers, class-action recovery, CCO — what each entity does and its legal basis | N/A — regulatory baseline |
 
 Each fund doc preserves the sourcing and explicitly flags anything the underlying research could
 not verify against a primary source — treat unflagged facts as sourced, flagged items as
