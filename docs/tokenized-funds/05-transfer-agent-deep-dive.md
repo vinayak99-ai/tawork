@@ -199,11 +199,10 @@ This is the direct answer to "what filings does a TA do yearly":
   withdrawals; order-processing window ~2:00am–midnight ET, Mon–Fri).
 - **NSCC Networking** — the industry-standard system for exchanging non-trade customer
   account-level data (registrations, dividend processing, reconciliation) between broker-dealers/
-  omnibus intermediaries and fund TAs so records match on both sides. *(DTCC's public materials
-  reference tiered summary-vs-detail account data, but the specific numbered "Networking Level
-  1/2/3" technical definitions live behind member-only technical guides that weren't accessible in
-  this research — treat any Level 1/2/3 description you encounter elsewhere as secondary-source
-  characterization, not confirmed DTCC rule text.)*
+  omnibus intermediaries and fund TAs so records match on both sides. **Update**: a follow-up
+  research pass found DTCC's current factsheet defines "Networking Level Account Control" as
+  **Levels 0, 3, and 4 — not the commonly assumed 1/2/3**. Full technical detail (including exactly
+  what data flows at each level) is in `06-dtcc-nscc-fund-serv-and-networking.md`, §2.2.
 - **Distribution processing / reinvestment** — dividend and capital-gain distribution calculation,
   cash payment, and DRIP administration.
 - **Proxy support** — mailing and vote-processing support alongside proxy solicitors/agents.
@@ -283,8 +282,8 @@ Commissioners questioning the action.)*
 
 - **"Rule 17Ad-20"** — no content located in any primary source; may not exist under that number
   in the current 17Ad series.
-- **DTCC Networking "Levels 1/2/3" precise technical definitions** — not exposed in DTCC's public
-  factsheet/webpage (behind member-only guides).
+- ~~DTCC Networking "Levels 1/2/3" precise technical definitions~~ — **resolved**: see
+  `06-dtcc-nscc-fund-serv-and-networking.md`, §2.2 (DTCC's current scheme is actually 0/3/4).
 - **Whether a mutual fund TA independently qualifies as a "financial institution" under Regulation
   S-ID** — ambiguous; not directly named in the regulation's text.
 - **Rule 17Ad-7's exact retention-period tier-to-citation mapping** — reconstructed from a search
