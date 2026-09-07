@@ -42,9 +42,16 @@ investors, distributing only via its own Benji App (individuals) or **Institutio
   filing plus a fee**, and there's a **separate federal annual filing (Form 24F-2, Rule 24f-2)**
   that runs on the same underlying data: the fund's aggregate net share sales for the fiscal year,
   sourced directly from the TA's own records.
-- **Eight scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
+- **Wash sale rules technically apply to this fund but almost never actually trigger**: IRC §1091
+  applies to corporations exactly like individuals (no exemption), but a stable-$1.00-NAV money
+  market fund produces **$0 gain/loss on essentially every redemption** (proceeds = basis), so
+  there's nothing to disallow. It's floating-NAV money market funds where this genuinely matters —
+  and where the IRS created a specific de minimis exception (Notice 2013-48) for exactly that
+  reason.
+- **Nine scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
   reinvestment, capital gain distribution (cash), capital gain reinvestment, the corporate
-  tax-certification scenario, and the annual Blue Sky/Rule 24f-2 notice filing cycle.
+  tax-certification scenario, the annual Blue Sky/Rule 24f-2 notice filing cycle, and wash sale
+  determination on a redemption.
 
 ---
 
@@ -404,6 +411,55 @@ per-order fee.
 [SEC Form 24F-2](https://www.sec.gov/files/form24f-2.pdf) ·
 [DFIN — What is SEC Form 24F-2](https://www.dfinsolutions.com/knowledge-hub/thought-leadership/knowledge-resources/form-24f-2)
 
+### 7.9 Scenario: Wash sale determination on a redemption
+
+**Trigger**: corporate treasury client redeems shares at a tax loss, and either already holds or
+subsequently acquires "substantially identical" shares within the surrounding window. **Important
+caveat up front, the same way §7.5/§7.6 flagged capital gains as unusual for this fund type**:
+for the specific stable-$1.00-NAV government/retail money market fund modeled throughout this doc,
+this scenario is a **near-non-event** — see why in step 1 below. It's included to show the
+mechanism and to flag the one real case where it actually matters.
+
+**Background**: **IRC §1091** disallows a loss deduction on a securities sale if the taxpayer
+buys "substantially identical" securities within **30 days before or after** the loss sale (a
+61-day window total). **This applies to corporations the same as individuals — there's no
+corporate exemption here**, unlike the backup-withholding/1099-DIV exemption in §7.7. Wash sale
+and the corporate tax-reporting exemption are two unrelated rules; don't conflate them.
+
+1. TA: at every redemption, calculates gain/loss by comparing proceeds to that specific lot's cost
+   basis (`08`, §2.4). **For this fund specifically**: because it maintains a stable **$1.00 NAV**
+   (amortized cost/penny rounding, §4), a shareholder buys at $1.00/share and redeems at
+   $1.00/share — **proceeds equal basis, so realized gain/loss is $0 on essentially every
+   redemption**. With no loss, there's nothing for §1091 to disallow. This is the fund-type-specific
+   reason wash sale is a non-issue here, not a general statement that money market funds are
+   exempt from wash sale rules.
+2. **Where this actually matters instead**: a *floating*-NAV money market fund (institutional
+   prime/municipal funds under the SEC's 2014 MMF reform) — since a floating-NAV fund's share
+   price isn't fixed at $1.00, a shareholder redeeming can realize a small gain or loss, and given
+   how frequently cash-management investors transact (the same buy/redeem pattern as §7.1/§7.2,
+   potentially multiple times a day per §4), nearly every redemption could technically trigger a
+   wash sale question without some relief.
+3. **The relief that exists for that case**: **IRS Notice 2013-48** provides that a redemption
+   loss on floating-NAV MMF shares is **not treated as subject to wash sale disallowance at all**
+   if the loss is **≤0.5% (50 basis points) of the shareholder's basis** in those shares — a
+   de minimis exception specifically designed to avoid applying lot-by-lot wash sale accounting to
+   routine, frequent cash-management activity.
+4. If a wash sale *were* triggered (a floating-NAV fund, a loss exceeding the 0.5% de minimis
+   threshold, and a repurchase within the 61-day window): TA/cost-basis reporting system disallows
+   the loss and **adds the disallowed amount to the basis of the repurchased shares** — the loss
+   isn't lost permanently, it's deferred into the new lot's basis.
+5. TA → Fund Accounting/Cost Basis Reporting: adjusts the repurchased lot's basis accordingly.
+6. TA → IRS Reporting (year-end): a triggered wash sale is reported on **Form 1099-B, Box 1g**
+   (Wash Sale Loss Disallowed) — though whether this specific reporting line follows the same
+   corporate-exemption pattern discussed for 1099-DIV in §7.7 is **not independently verified**
+   (see §8's gaps) — flagged rather than assumed either way.
+7. TA → Shareholder Reporting: reflects the adjusted basis on the client's cost-basis statement.
+
+[26 U.S.C. §1091, Cornell LII](https://www.law.cornell.edu/uscode/text/26/1091) ·
+[IRS Notice 2013-48 — Application of Wash Sale Rules to Money Market Fund Shares](https://www.irs.gov/pub/irs-drop/n-13-48.pdf) ·
+[Federal Register — Method of Accounting for Gains and Losses on Shares in Certain Money Market Funds](https://www.federalregister.gov/documents/2014/07/28/2014-17689/method-of-accounting-for-gains-and-losses-on-shares-in-certain-money-market-funds-broker-returns) ·
+[Tax Notes — IRS Issues Guidance on Wash Sale Rules for Money Market Funds](https://www.taxnotes.com/research/federal/irs-guidance/revenue-procedures/irs-issues-guidance-on-wash-sale-rules-for-money-market/dpnk)
+
 ---
 
 ## 8. Flagged gaps / not independently verified
@@ -430,6 +486,10 @@ per-order fee.
   from in-state sales volume specifically (which would require the TA to report state-attributed
   sales, not just an aggregate) — likely varies by state; not independently confirmed either way
   beyond the single Alabama example.
+- Whether Form 1099-B's wash sale disallowed-loss reporting (Box 1g, §7.9) follows the same
+  corporate-exemption pattern as 1099-DIV — not independently verified; flagged in §7.9 itself and
+  restated here since it's the same open question as the first bullet above, just for a different
+  box on the same form.
 
 ## Sources
 
@@ -445,3 +505,4 @@ per-order fee.
 - [SEC No-Action Letter, ICI, June 1 2018 (ICA §22(e))](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm)
 - [Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) · [IRS Instructions for the Requester of Form W-9](https://www.irs.gov/instructions/iw9) · [LegalClarity — Do Corporations Get a 1099?](https://legalclarity.org/do-corporations-get-1099-forms/) · [BoomTax — 1099-DIV Filing Threshold](https://boomtax.com/tax-forms/what-is-1099-div-reporting-threshold)
 - [PipelineRoad — Blue Sky Laws glossary (NSMIA/covered securities background)](https://pipelineroad.com/glossary/blue-sky-laws) · [Alabama Securities Commission — Notice Filings for Mutual Funds](https://asc.alabama.gov/statute/notice-filings-for-mutual-funds/) · [17 CFR 270.24f-2, eCFR](https://www.ecfr.gov/current/title-17/chapter-II/part-270/section-270.24f-2) · [SEC Form 24F-2](https://www.sec.gov/files/form24f-2.pdf) · [DFIN — What is SEC Form 24F-2](https://www.dfinsolutions.com/knowledge-hub/thought-leadership/knowledge-resources/form-24f-2)
+- [26 U.S.C. §1091, Cornell LII](https://www.law.cornell.edu/uscode/text/26/1091) · [IRS Notice 2013-48 — Application of Wash Sale Rules to Money Market Fund Shares](https://www.irs.gov/pub/irs-drop/n-13-48.pdf) · [Federal Register — Method of Accounting for Gains and Losses on Shares in Certain Money Market Funds](https://www.federalregister.gov/documents/2014/07/28/2014-17689/method-of-accounting-for-gains-and-losses-on-shares-in-certain-money-market-funds-broker-returns) · [Tax Notes — IRS Issues Guidance on Wash Sale Rules for Money Market Funds](https://www.taxnotes.com/research/federal/irs-guidance/revenue-procedures/irs-issues-guidance-on-wash-sale-rules-for-money-market/dpnk)
