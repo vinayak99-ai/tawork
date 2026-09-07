@@ -48,10 +48,17 @@ investors, distributing only via its own Benji App (individuals) or **Institutio
   there's nothing to disallow. It's floating-NAV money market funds where this genuinely matters —
   and where the IRS created a specific de minimis exception (Notice 2013-48) for exactly that
   reason.
-- **Nine scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
+- **Escheatment is a real TA obligation but, like wash sales, an edge case for this specific
+  client profile**: a corporate treasury cash-sweep account transacts too often to plausibly go
+  dormant for the years it takes to trigger unclaimed-property rules. It's included anyway because
+  a corporate holder raises a genuinely open question — RUUPA repealed the old "business-to-
+  business" exemption that used to exempt/defer property owed between businesses, but whether
+  that exemption (where it still exists in non-RUUPA states) has ever applied to mutual fund share
+  holdings specifically isn't settled by anything found in this research pass.
+- **Ten scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
   reinvestment, capital gain distribution (cash), capital gain reinvestment, the corporate
-  tax-certification scenario, the annual Blue Sky/Rule 24f-2 notice filing cycle, and wash sale
-  determination on a redemption.
+  tax-certification scenario, the annual Blue Sky/Rule 24f-2 notice filing cycle, wash sale
+  determination on a redemption, and escheatment of a dormant account.
 
 ---
 
@@ -460,6 +467,54 @@ and the corporate tax-reporting exemption are two unrelated rules; don't conflat
 [Federal Register — Method of Accounting for Gains and Losses on Shares in Certain Money Market Funds](https://www.federalregister.gov/documents/2014/07/28/2014-17689/method-of-accounting-for-gains-and-losses-on-shares-in-certain-money-market-funds-broker-returns) ·
 [Tax Notes — IRS Issues Guidance on Wash Sale Rules for Money Market Funds](https://www.taxnotes.com/research/federal/irs-guidance/revenue-procedures/irs-issues-guidance-on-wash-sale-rules-for-money-market/dpnk)
 
+### 7.10 Scenario: Escheatment of a dormant account
+
+**Trigger**: the corporate treasury client's account goes dormant — correspondence returned
+undeliverable, no transactions, no response to outreach — for long enough to cross a state's
+unclaimed-property dormancy threshold. **Same caveat pattern as §7.5/§7.6/§7.9**: for the specific
+client profile modeled throughout this doc — an actively managed corporate cash-sweep vehicle
+transacting frequently, potentially multiple times a day (§4) — genuine multi-year dormancy is an
+edge case, not the expected path. It's included because it's a real TA obligation that could apply
+to *any* account type, and because a corporate holder introduces a genuine complication worth
+flagging rather than glossing over.
+
+1. TA: per **Rule 17Ad-17** (`05`, §2), runs a database search for the "lost" account 3–12 months
+   after correspondence first comes back undeliverable, then a second search 6–12 months after
+   the first — at no charge to the holder.
+2. TA: if the account remains unresponsive and the state's dormancy period elapses (the RUUPA model
+   default is **3 years** of owner inactivity, though actual periods vary by state, per `05` §3),
+   the account becomes reportable as unclaimed/abandoned property.
+3. **Corporate-holder complication, worth flagging explicitly**: many states historically applied
+   a **"business-to-business" (B2B) exemption** — property owed between businesses in the ordinary
+   course of business was either fully exempt from escheatment or had reporting **deferred until
+   the business relationship ends**. **RUUPA (2016) repealed this exemption** in states that
+   adopted it verbatim, meaning a corporate-owned account is escheatable there on the same terms
+   as an individual's. In states that kept an older-style unclaimed property statute, some form of
+   B2B exemption may still apply. **Not independently confirmed**: whether a B2B exemption of this
+   kind has ever been applied specifically to mutual fund share holdings (as opposed to its more
+   commonly discussed context — unpaid vendor invoices, rebates, accounts receivable/payable) — the
+   research for this pass found the B2B exemption's general shape but not a source confirming or
+   ruling out its application to securities/investment-fund holdings specifically. Treat this as a
+   genuinely open question for a real corporate treasury account, not a settled "yes, it applies"
+   or "no, it doesn't."
+4. TA: if reportable, compiles the required data (last known address, account value, holder
+   identification) into the **NAUPA standard electronic file format** (`05`, §3).
+5. TA → State (holder's last-known-address state): remits the property — for a mutual fund
+   account, typically the shares are redeemed at the applicable NAV and the **cash proceeds** are
+   what's actually escheated (consistent with how most states expect securities-related unclaimed
+   property to be reported), though some states have their own specific handling for in-kind
+   security transfers.
+6. TA → Fund Accounting: reports the account closure and associated redemption, same as any other
+   full redemption (§7.2) in terms of fund-level cash effect.
+7. TA → Shareholder Reporting: the account is closed on the TA's books; the corporation's only
+   path to recover the funds afterward is directly through the state's unclaimed-property claim
+   process, not through the fund/TA.
+
+[26 U.S.C./RUUPA background, `05` §2–3](./05-transfer-agent-deep-dive.md) ·
+[Jones Day — Unclaimed Property Auditors Target B2B Property](https://www.jonesday.com/en/insights/2019/02/illinois-unclaimed-property-auditors-target) ·
+[Baker Tilly — Unraveling the Business-to-Business Exemption](https://www.bakertilly.com/insights/unclaimed-property-unraveling-the-business-to-business-exemption) ·
+[UPCR — ULC approves RUUPA](https://www.upcr-llc.com/ulc-approves-the-revised-uniform-unclaimed-property-act-ruupa/)
+
 ---
 
 ## 8. Flagged gaps / not independently verified
@@ -490,6 +545,13 @@ and the corporate tax-reporting exemption are two unrelated rules; don't conflat
   corporate-exemption pattern as 1099-DIV — not independently verified; flagged in §7.9 itself and
   restated here since it's the same open question as the first bullet above, just for a different
   box on the same form.
+- **Whether a business-to-business unclaimed-property exemption has ever been applied to mutual
+  fund share holdings specifically** (§7.10) — the B2B exemption's existence and RUUPA's repeal of
+  it are confirmed; its application to securities/fund holdings (versus its more commonly
+  discussed context of unpaid invoices/rebates) is not.
+- Exact state-by-state handling of escheated mutual fund shares — whether states uniformly expect
+  cash proceeds from a forced redemption (as assumed in §7.10) or sometimes expect an in-kind
+  transfer of the shares themselves — not independently verified across states.
 
 ## Sources
 
@@ -506,3 +568,4 @@ and the corporate tax-reporting exemption are two unrelated rules; don't conflat
 - [Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) · [IRS Instructions for the Requester of Form W-9](https://www.irs.gov/instructions/iw9) · [LegalClarity — Do Corporations Get a 1099?](https://legalclarity.org/do-corporations-get-1099-forms/) · [BoomTax — 1099-DIV Filing Threshold](https://boomtax.com/tax-forms/what-is-1099-div-reporting-threshold)
 - [PipelineRoad — Blue Sky Laws glossary (NSMIA/covered securities background)](https://pipelineroad.com/glossary/blue-sky-laws) · [Alabama Securities Commission — Notice Filings for Mutual Funds](https://asc.alabama.gov/statute/notice-filings-for-mutual-funds/) · [17 CFR 270.24f-2, eCFR](https://www.ecfr.gov/current/title-17/chapter-II/part-270/section-270.24f-2) · [SEC Form 24F-2](https://www.sec.gov/files/form24f-2.pdf) · [DFIN — What is SEC Form 24F-2](https://www.dfinsolutions.com/knowledge-hub/thought-leadership/knowledge-resources/form-24f-2)
 - [26 U.S.C. §1091, Cornell LII](https://www.law.cornell.edu/uscode/text/26/1091) · [IRS Notice 2013-48 — Application of Wash Sale Rules to Money Market Fund Shares](https://www.irs.gov/pub/irs-drop/n-13-48.pdf) · [Federal Register — Method of Accounting for Gains and Losses on Shares in Certain Money Market Funds](https://www.federalregister.gov/documents/2014/07/28/2014-17689/method-of-accounting-for-gains-and-losses-on-shares-in-certain-money-market-funds-broker-returns) · [Tax Notes — IRS Issues Guidance on Wash Sale Rules for Money Market Funds](https://www.taxnotes.com/research/federal/irs-guidance/revenue-procedures/irs-issues-guidance-on-wash-sale-rules-for-money-market/dpnk)
+- [Jones Day — Unclaimed Property Auditors Target B2B Property](https://www.jonesday.com/en/insights/2019/02/illinois-unclaimed-property-auditors-target) · [Baker Tilly — Unraveling the Business-to-Business Exemption](https://www.bakertilly.com/insights/unclaimed-property-unraveling-the-business-to-business-exemption) · [UPCR — ULC approves RUUPA](https://www.upcr-llc.com/ulc-approves-the-revised-uniform-unclaimed-property-act-ruupa/) · [LegalClarity — Escheatment Laws by State](https://legalclarity.org/escheatment-laws-by-state-what-businesses-need-to-know/)
