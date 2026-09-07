@@ -2,29 +2,22 @@
 
 How data moves when a **domestic US corporate treasury client** invests directly in a **domestic
 (Rule 2a-7) money market fund** through an **investor portal that connects straight to the
-transfer agent** — no broker-dealer, no NSCC, no DTCC. This is a **direct-at-fund** distribution
-model, not the intermediary/omnibus model covered in `06`. Companion to `05` and `08`.
-
-**Scope change from the previous version of this doc**: NSCC Fund/SERV, ACATS-Fund/SERV, DTCC
-Networking, and SWIFT `setr.*` messages are all deliberately **out of scope here** — every one of
-those exists to route orders through a broker-dealer/intermediary or a cross-border distributor,
-and neither applies when the investor transacts directly with the TA. If you need that
-intermediary-mediated model, it's fully covered in `06`. This doc models the simpler, direct case.
+transfer agent**. This is a **direct-at-fund** distribution model. Companion to `05`, `07`, and
+`08`.
 
 **Real-world precedent for this pattern**: this isn't a hypothetical simplification — it's how
-some funds actually operate. Franklin Templeton's OnChain Fund (`01`, §5) explicitly **excludes
-sales through financial intermediaries**, distributing only via its own Benji App (individuals) or
-**Institutional Web Portal** (institutions) — the same direct-at-fund shape modeled here, just
-without the blockchain layer.
+some funds actually operate. Franklin Templeton's OnChain Fund (`01`, §5) sells directly to
+investors, distributing only via its own Benji App (individuals) or **Institutional Web Portal**
+(institutions) — the same direct-at-fund shape modeled here, just without the blockchain layer.
 
 ---
 
 ## ⚡ TL;DR
 
 - **The actors, direct-at-fund**: Corporate Treasury Client → Investor Portal → Transfer Agent,
-  with the TA still coordinating with **Fund Accounting** (NAV), a **Custodian Bank** (fund
-  assets), a **Payment rail** (Fedwire/ACH), and **Shareholder/IRS Reporting** — but with no
-  broker-dealer and no NSCC/DTCC infrastructure anywhere in the chain.
+  with the TA coordinating with **Fund Accounting** (NAV), a **Custodian Bank** (fund assets), a
+  **Payment rail** (Fedwire/ACH), and **Shareholder/IRS Reporting** — a short, direct chain end to
+  end.
 - **Money market fund NAV mechanics matter here**: a Rule 2a-7 government/retail money fund
   targets a stable **$1.00 NAV** via amortized cost/penny rounding, and — specifically to serve
   institutional cash-management clients like a corporate treasury — many such funds **strike NAV
@@ -43,9 +36,9 @@ without the blockchain layer.
   status — **backup withholding doesn't apply either, and the fund generally isn't even required to
   issue a 1099-DIV at all**. That exemption evaporates the moment backup withholding actually gets
   triggered (e.g., no valid W-9 on file) — then the normal reporting obligations kick back in.
-- **Seven scenarios in §8**, redone for this direct/no-NSCC/domestic-MMF/corporate-treasury
-  context: subscription, redemption, dividend distribution (cash), dividend reinvestment, capital
-  gain distribution (cash), capital gain reinvestment, and the corporate tax-certification scenario.
+- **Seven scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
+  reinvestment, capital gain distribution (cash), capital gain reinvestment, and the corporate
+  tax-certification scenario.
 
 ---
 
@@ -54,16 +47,15 @@ without the blockchain layer.
 | Actor | Role |
 |---|---|
 | **Corporate Treasury Client** | The investor — a domestic US corporation managing its own cash reserves, not an individual retail investor. |
-| **Investor Portal** | A direct channel into the TA's own order-processing system — proprietary web session, secure file/SFTP batch, or API. Not a broker-dealer platform; not connected to NSCC. |
+| **Investor Portal** | A direct channel into the TA's own order-processing system — proprietary web session, secure file/SFTP batch, or API. |
 | **Transfer Agent (TA)** | Same core function as `05` — maintains the master securityholder file, processes orders, applies KYC/AML, generates statements and tax forms. |
 | **Fund Accounting** | Strikes the fund's NAV (potentially multiple times a day for this fund type — §3). |
 | **Custodian Bank** | Holds the fund's actual portfolio securities and cash (`07`, §3). |
 | **Payment System** | Fedwire (primary, given treasury-scale same-day movements) or ACH (secondary) — §4. |
 | **Shareholder/IRS Reporting** | Account statements, trade confirmations, and (where applicable) 1099-DIV — §6. |
 
-No broker-dealer, no NSCC, no DTCC. The TA is talking directly to the client's portal on one side
-and to Fund Accounting/Custodian/Payment rails on the other — a much shorter chain than the
-intermediary-mediated model in `06`.
+The TA talks directly to the client's portal on one side and to Fund Accounting/Custodian/Payment
+rails on the other.
 
 ---
 
@@ -84,7 +76,7 @@ covered in `05`, §3:
   (3) other risk-based triggers under the institution's own CDD procedures** — not a rigid
   recurring schedule.
 - **Form W-9 at onboarding**: this is also where the corporation claims its **exempt payee**
-  status for backup-withholding purposes (relevant to the tax scenario in §8.7) — the exemption
+  status for backup-withholding purposes (relevant to the tax scenario in §7.7) — the exemption
   isn't automatic just because the investor is a corporation; it has to be properly certified on
   the W-9.
 
@@ -96,26 +88,24 @@ covered in `05`, §3:
 
 ## 3. Order intake — investor portal directly to the TA
 
-No Fund/SERV, no `setr.*` messages, no intermediary confirmation loop. The flow is simply:
+The flow is simply:
 
 1. Corporate treasury client logs into the investor portal (a direct channel into the TA's system
    — the same "institutional web portal" pattern documented for BENJI/FOBXX in `01`, §5).
 2. The order (subscription, redemption, etc.) is submitted straight into the TA's order-processing
    and recordkeeping system.
-3. The TA validates and — once NAV is available (§4) — prices and posts it directly, with no
-   third-party clearing hop in between.
+3. The TA validates and — once NAV is available (§4) — prices and posts it directly.
 
 This is deliberately the simplest possible order-intake path in this doc set: one direct
-connection, not a distribution network.
+connection.
 
 ---
 
 ## 4. TA ↔ Fund Accounting — the NAV cycle for a money market fund
 
-The **Rule 22c-1** forward-pricing dependency and **Rule 2a-4** current-NAV mechanics already
-covered in the intermediary-mediated model still apply unchanged — an order still has to wait for
-the **next NAV computed after receipt**. What's specific to a money market fund and a
-treasury-cash-management client:
+The **Rule 22c-1** forward-pricing dependency and **Rule 2a-4** current-NAV mechanics apply here —
+an order still has to wait for the **next NAV computed after receipt**. What's specific to a money
+market fund and a treasury-cash-management client:
 
 - A **Rule 2a-7 government/retail money market fund** targets a stable **$1.00 NAV** using
   amortized-cost/penny-rounding valuation (`01`, §1, covers this exact mechanic for FOBXX).
@@ -128,7 +118,7 @@ treasury-cash-management client:
   [ICI — Intraday Processing for Floating NAV Money Market Funds Working Group](https://www.ici.org/ops_mmf_reform/intraday)
 
 The fund-accounting-to-TA NAV feed itself remains **proprietary/vendor-specific** — no named
-industry-standard format, same finding as the intermediary-mediated model.
+industry-standard format.
 
 ---
 
@@ -176,18 +166,17 @@ actually is.
 
 ### 5.3 NACHA entry classes — still no fund-specific code
 
-Confirmed in the earlier version of this doc and unchanged here: NACHA Standard Entry Class codes
-are chosen by **receiver type and authorization channel**, not transaction purpose — there's no
-NACHA code specific to "mutual fund transaction." A corporate-to-corporate ACH movement (where
-used) would typically be **CCD** (Corporate Credit or Debit); a consumer-style debit would be
-PPD/WEB, but those are less likely for a corporate treasury account specifically.
+NACHA Standard Entry Class codes are chosen by **receiver type and authorization channel**, not
+transaction purpose — there's no NACHA code specific to "mutual fund transaction." A
+corporate-to-corporate ACH movement (where used) would typically be **CCD** (Corporate Credit or
+Debit); a consumer-style debit would be PPD/WEB, but those are less likely for a corporate
+treasury account specifically.
 [Nacha — Company Entry Descriptions](https://www.nacha.org/rules/risk-management-topics-company-entry-descriptions)
 
 ### 5.4 Custodian cash confirmation
 
-Unchanged from the intermediary-mediated model: the custodian confirms cash movements via
-end-of-day **MT940/camt.053** (final booked balances) or intraday **MT942/camt.052** statements —
-this leg doesn't depend on NSCC/DTCC either.
+The custodian confirms cash movements via end-of-day **MT940/camt.053** (final booked balances) or
+intraday **MT942/camt.052** statements.
 
 ---
 
@@ -195,34 +184,22 @@ this leg doesn't depend on NSCC/DTCC either.
 
 Trade confirmations and account statements work the same as the general case (`08`, §1). The tax
 reporting mechanics are where a domestic corporate investor genuinely differs — covered in full in
-§8.7 below, but the headline: **the fund is generally not required to issue a 1099-DIV to a
+§7.7 below, but the headline: **the fund is generally not required to issue a 1099-DIV to a
 corporation at all**, regardless of distribution amount, unless backup withholding was actually
 triggered on that payment.
 
 ---
 
-## 7. What's deliberately excluded from this doc
-
-Per the scope change at the top: **NSCC Fund/SERV, ACATS-Fund/SERV, DTCC Networking (Activity
-Report, Position Files, B50/B51/B52/F55 records), MFPS I/II, DTCC Payment aXis, and SWIFT `setr.*`
-messages** are all absent from this document on purpose. None of them apply to a direct-at-fund
-relationship between a corporate treasury client and the TA — they all exist to serve
-broker-dealer/intermediary-mediated distribution or cross-border order routing, neither of which
-is present here. That entire intermediary-mediated model is fully documented in `06` if you need
-it for a different distribution channel.
-
----
-
-## 8. Scenarios — trigger and steps
+## 7. Scenarios — trigger and steps
 
 Same format as before: **what starts it**, then a simple `Entity → Entity: what happens` list.
 
-### 8.1 Scenario: Subscription (purchase) order
+### 7.1 Scenario: Subscription (purchase) order
 
 **Trigger**: corporate treasury client wants to invest cash into the fund.
 
 1. Corporate Treasury Client → Investor Portal: submits a purchase order.
-2. Investor Portal → TA: order arrives directly (no intermediary/NSCC hop, §3).
+2. Investor Portal → TA: order arrives directly (§3).
 3. TA: validates the order (KYC/AML per §2, account status) — **cannot price it yet**.
 4. Fund Accounting → TA: sends the applicable NAV once struck — possibly one of several intraday
    strikes for this fund type (§4).
@@ -235,13 +212,13 @@ Same format as before: **what starts it**, then a simple `Entity → Entity: wha
 9. Custodian → TA: confirms the cash receipt via **MT940/camt.053** (§5.4).
 10. TA → Client: sends the trade confirmation statement (§6).
 
-### 8.2 Scenario: Redemption order
+### 7.2 Scenario: Redemption order
 
 **Trigger**: corporate treasury client needs cash back from the fund.
 
 1. Corporate Treasury Client → Investor Portal: submits a redemption request.
 2. Investor Portal → TA: order arrives directly.
-3. TA: validates the order, waits for the applicable NAV (same dependency as §8.1).
+3. TA: validates the order, waits for the applicable NAV (same dependency as §7.1).
 4. TA: prices the redemption, debits the client's share balance (`08`, §1).
 5. TA → Fund Accounting: reports the net outflow — may trigger a security sale if the fund's cash
    buffer is insufficient (Rule 22e-4 liquidity management).
@@ -252,11 +229,11 @@ Same format as before: **what starts it**, then a simple `Entity → Entity: wha
    that statutory ceiling.
    [SEC No-Action Letter, ICI, June 1 2018](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm)
 8. TA → Client: generates the redemption confirmation now; a 1099-B is generally **not** required
-   for a corporate holder (see the general corporate-exemption logic in §8.7 — 1099-B follows a
+   for a corporate holder (see the general corporate-exemption logic in §7.7 — 1099-B follows a
    similar exempt-recipient pattern to 1099-DIV for corporations, though this doc's primary
    research focused on the dividend/distribution side).
 
-### 8.3 Scenario: Dividend distribution (cash)
+### 7.3 Scenario: Dividend distribution (cash)
 
 **Trigger**: fund declares a dividend; the corporate account is elected for cash payout.
 
@@ -270,16 +247,16 @@ Same format as before: **what starts it**, then a simple `Entity → Entity: wha
 6. TA → Shareholder Reporting: posts the payment to the activity file/balance file and the
    client's account statement (`08`, §1).
 7. TA → IRS Reporting (year-end): **only if** backup withholding applied on this payment (see
-   §8.7) — otherwise, per the corporate exemption, **no 1099-DIV is required for this
+   §7.7) — otherwise, per the corporate exemption, **no 1099-DIV is required for this
    distribution at all**.
 
-### 8.4 Scenario: Dividend reinvestment
+### 7.4 Scenario: Dividend reinvestment
 
-**Trigger**: same dividend declaration as §8.3, account elected to reinvest — the more common
+**Trigger**: same dividend declaration as §7.3, account elected to reinvest — the more common
 default for a treasury cash-sweep arrangement, where the point is to keep idle cash working rather
 than pull it out.
 
-1. Fund Board/Accounting → TA: same dividend declaration as §8.3, step 1.
+1. Fund Board/Accounting → TA: same dividend declaration as §7.3, step 1.
 2. TA: calculates the client's dividend amount; the account's election is **Reinvest**.
 3. TA: uses the dividend amount to buy new shares at the current NAV — **no cash leaves the
    fund**; posts as a credit to both the activity file and balance file (`08`, §1), with a new
@@ -287,11 +264,11 @@ than pull it out.
 4. TA → Fund Accounting: reports the total dividends reinvested (shares issued, no net cash
    impact).
 5. TA → Shareholder Reporting: updates the account's share balance and statement.
-6. TA → IRS Reporting (year-end): same exemption logic as §8.3 — reinvesting doesn't change
-   whether a 1099-DIV is required; that still turns on backup-withholding status (§8.7), not on
+6. TA → IRS Reporting (year-end): same exemption logic as §7.3 — reinvesting doesn't change
+   whether a 1099-DIV is required; that still turns on backup-withholding status (§7.7), not on
    the cash-vs-reinvest election.
 
-### 8.5 Scenario: Capital gain distribution (cash)
+### 7.5 Scenario: Capital gain distribution (cash)
 
 **Trigger**: fund declares a capital gain distribution — **worth flagging as unusual for this
 specific fund type**: a stable-NAV, Rule 2a-7 government/retail money market fund using
@@ -300,18 +277,18 @@ short-term instruments to maturity rather than trading them for gains. This scen
 for completeness (and would be far more routine for a floating-NAV or longer-duration fund), but
 don't expect it to be a regular event for the specific fund modeled in this doc.
 
-1–6. Same steps as §8.3 (substitute "capital gain distribution" for "dividend").
-7. TA → IRS Reporting (year-end): if required at all (same corporate-exemption logic as §8.3),
+1–6. Same steps as §7.3 (substitute "capital gain distribution" for "dividend").
+7. TA → IRS Reporting (year-end): if required at all (same corporate-exemption logic as §7.3),
    reported on **Form 1099-DIV, Box 2a** (Total Capital Gain Distributions — always long-term
    regardless of the fund's actual holding period, per `08`, §2.2).
 
-### 8.6 Scenario: Capital gain reinvestment
+### 7.6 Scenario: Capital gain reinvestment
 
-**Trigger**: same rare capital gain declaration as §8.5, account elected to reinvest. Mechanically
-identical to §8.4 — new shares purchased at current NAV, new cost-basis lot, no cash leaves the
-fund — with the same "unusual for this fund type" caveat as §8.5.
+**Trigger**: same rare capital gain declaration as §7.5, account elected to reinvest. Mechanically
+identical to §7.4 — new shares purchased at current NAV, new cost-basis lot, no cash leaves the
+fund — with the same "unusual for this fund type" caveat as §7.5.
 
-### 8.7 Scenario: Tax certification for a domestic corporate investor
+### 7.7 Scenario: Tax certification for a domestic corporate investor
 
 **Trigger**: a distribution is payable to the corporate treasury client, and the TA needs to
 determine what (if any) withholding and reporting applies. This is the scenario that runs through
@@ -367,10 +344,10 @@ standard IRS guidance, cross-checked across multiple summaries agreeing on the s
 
 ---
 
-## 9. Flagged gaps / not independently verified
+## 8. Flagged gaps / not independently verified
 
 - Whether 1099-B for redemption proceeds follows the exact same corporate-exemption pattern as
-  1099-DIV — the research for this pass focused on the dividend/distribution side; §8.2's note on
+  1099-DIV — the research for this pass focused on the dividend/distribution side; §7.2's note on
   this is a reasonable inference from the general "exempt recipient" concept in IRS reporting
   rules, not independently confirmed against the 1099-B instructions specifically.
   See `05`, §3 and `08`, §2.4 for the general 1099-B/cost-basis framework this would sit within.
