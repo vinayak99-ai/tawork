@@ -194,6 +194,48 @@ matters for implementation work**: [ICI PDF](https://www.ici.org/system/files/at
 
 ## 3. TA → payment agent / bank — cash disbursement
 
+### 3.0 Primer — what ACH, NACHA, and Fedwire actually are
+
+These three terms get used interchangeably in casual conversation but name three different things
+— a network, a rule-making body, and a separate Fed system entirely. Worth being precise before
+§3.1–3.2 go into the technical detail:
+
+- **ACH (Automated Clearing House)** is the **network itself** — the US electronic payment system
+  that moves money between bank accounts. It's **batch-based, not real-time**: transactions are
+  collected and settled in scheduled windows rather than one at a time (Same Day ACH narrows that
+  window but doesn't make it instant/real-time the way Fedwire is).
+- **NACHA is not the network — it's the rule-maker.** NACHA (National Automated Clearing House
+  Association) is a private, nonprofit association that **writes and enforces the ACH Network's
+  operating rules** — this is where the SEC (Standard Entry Class) codes referenced in §3.1
+  (PPD/WEB/CCD) actually come from. NACHA itself never touches or moves any money.
+- **Who actually clears and settles ACH transactions**: two **"ACH Operators"** do the real work of
+  clearing and settling batches under NACHA's rules —
+  - **FedACH**, operated by the Federal Reserve Banks — the only public-sector ACH operator.
+  - **EPN (Electronic Payments Network)**, operated by The Clearing House (owned by ~25 large
+    banks) — the only private-sector ACH operator.
+  The two are fully interoperable and exchange files with each other multiple times a day, so a
+  payment originating at a FedACH-using bank reaches an EPN-using bank's account seamlessly —
+  invisible to the TA, the fund, or the shareholder.
+- **Fedwire (Fedwire Funds Service)** is a **completely separate Federal Reserve system** — not
+  part of the ACH Network, not governed by NACHA at all. It's a **real-time gross settlement
+  (RTGS)** system: each wire settles individually, immediately, and irrevocably, rather than being
+  batched and net-settled like ACH. This is the "large-dollar wire" rail referenced in §3.2, and
+  it's also the underlying rail beneath NSCC's own net settlement (`06`, §1.3/§3.2 — "Fed funds at
+  NSCC").
+
+| | ACH | Fedwire |
+|---|---|---|
+| **Governed by** | NACHA (private rules body) | The Federal Reserve directly (a Fed service, no separate private rulebook) |
+| **Operated by** | FedACH (the Fed) + EPN (The Clearing House) — interoperable | Federal Reserve Banks only |
+| **Settlement style** | Batched, net-settled, scheduled processing windows (Same Day ACH included) | Real-time gross settlement — one transfer at a time, immediate and final |
+| **Typical use in this doc** | Shareholder purchase debits / redemption credits (§3.1) | Large-dollar wires, NSCC's own net settlement (§3.2; `06`) |
+
+[Modern Treasury — A Complete Primer to ACH: Understanding the Four Key Players](https://www.moderntreasury.com/journal/a-complete-primer-to-ach-understanding-the-four-key-players) ·
+[Federal Reserve History — Automated Clearing House Payments](https://www.federalreservehistory.org/essays/automated-clearing-house) ·
+[Wikipedia — FedACH](https://en.wikipedia.org/wiki/FedACH) ·
+[Wikipedia — Electronic Payments Network](https://en.wikipedia.org/wiki/Electronic_Payments_Network) ·
+[Trustpair — What's the Difference Between ACH and Nacha?](https://trustpair.com/blog/difference-between-ach-and-nacha/)
+
 ### 3.1 ACH — no fund-specific NACHA code exists
 
 **Correcting an assumption**: NACHA Standard Entry Class (SEC) codes are chosen by the *nature of
@@ -432,6 +474,7 @@ longer and more load-bearing than in prior docs — **do not fill these gaps wit
 - [17 CFR 270.22c-1, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.22c-1) · [SEC 2003 Amendments to Pricing Rules](https://www.sec.gov/rules-regulations/2003/12/amendments-rules-governing-pricing-mutual-fund-shares) · [17 CFR 270.2a-4, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.2a-4) · [ICI FAQs: Mutual Fund Share Pricing](https://www.ici.org/faqs/faq/mfs/faqs_navs)
 - [Milestone Group NAV Unit Pricing](https://www.milestonegroup.com/solutions/fund-processing/nav-unit-pricing) · [ICI — Mutual Fund Operations Planning Guide for an Early Market Close](https://www.ici.org/system/files/attachments/pdf/19_ppr_marketclose.pdf)
 - [Nacha — Company Entry Descriptions](https://www.nacha.org/rules/risk-management-topics-company-entry-descriptions) · [Modern Treasury — SEC codes](https://www.moderntreasury.com/learn/sec-codes) · [Increase — ACH SEC Codes](https://increase.com/documentation/ach-standard-entry-class-codes)
+- [Modern Treasury — A Complete Primer to ACH: Understanding the Four Key Players](https://www.moderntreasury.com/journal/a-complete-primer-to-ach-understanding-the-four-key-players) · [Federal Reserve History — Automated Clearing House Payments](https://www.federalreservehistory.org/essays/automated-clearing-house) · [Wikipedia — FedACH](https://en.wikipedia.org/wiki/FedACH) · [Wikipedia — Electronic Payments Network](https://en.wikipedia.org/wiki/Electronic_Payments_Network) · [Trustpair — ACH vs. Nacha](https://trustpair.com/blog/difference-between-ach-and-nacha/)
 - [JPMorgan — Fedwire ISO 20022 migration](https://www.jpmorgan.com/insights/payments/fx-cross-border/iso-20022-migration)
 - [camt.052 vs 053 vs 054 explainer](https://validatefin.com/en/blog/camt-052-vs-053-vs-054) · [MT940 to ISO 20022 migration](https://treasuryxl.com/blog/the-future-of-financial-messaging-migrating-from-mt940-to-iso-20022/) · [PaymentBrief camt overview](https://paymentbrief.com/articles/camt-052-053-054-account-reporting-reference/)
 - [SEC No-Action Letter, ICI, June 1 2018 (ICA §22(e))](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm) · [SEC Committee of Annuity Insurers §22(e) materials](https://www.sec.gov/investment/cai-22e-041124)
