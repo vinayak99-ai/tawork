@@ -55,10 +55,17 @@ investors, distributing only via its own Benji App (individuals) or **Institutio
   business" exemption that used to exempt/defer property owed between businesses, but whether
   that exemption (where it still exists in non-RUUPA states) has ever applied to mutual fund share
   holdings specifically isn't settled by anything found in this research pass.
-- **Ten scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
-  reinvestment, capital gain distribution (cash), capital gain reinvestment, the corporate
-  tax-certification scenario, the annual Blue Sky/Rule 24f-2 notice filing cycle, wash sale
-  determination on a redemption, and escheatment of a dormant account.
+- **Fifteen scenarios in §7**: the ten client/fund-transaction scenarios (subscription, redemption,
+  dividend distribution/reinvestment, capital gain distribution/reinvestment, tax certification,
+  Blue Sky/Rule 24f-2, wash sale, escheatment) plus **five compliance-reporting scenarios that run
+  at the level of the TA's or fund's whole operation, not just this one client relationship**:
+  the TA's own **Form TA-2** annual report, its **Rule 17Ad-13** internal control audit, **Rule
+  17Ad-11** aged record difference reporting, **SAR/OFAC** reporting, and the fund-level **Form
+  N-CEN/N-MFP/N-CSR** filings built on TA-sourced data.
+- **Money market funds file Form N-MFP, not Form N-PORT** — worth flagging since N-PORT is the
+  form most other registered funds use for monthly portfolio holdings, but Rule 2a-7 money market
+  funds (the fund type modeled throughout this doc) are explicitly excluded from N-PORT and use
+  N-MFP instead, under Rule 30b1-7.
 
 ---
 
@@ -515,6 +522,124 @@ flagging rather than glossing over.
 [Baker Tilly — Unraveling the Business-to-Business Exemption](https://www.bakertilly.com/insights/unclaimed-property-unraveling-the-business-to-business-exemption) ·
 [UPCR — ULC approves RUUPA](https://www.upcr-llc.com/ulc-approves-the-revised-uniform-unclaimed-property-act-ruupa/)
 
+### 7.11 Scenario: Form TA-2 — the TA's own annual SEC report
+
+**Trigger**: calendar year-end, for every transfer agent registered as of December 31 — **this one
+is about the TA as a regulated entity in its own right, not about this specific fund or client**.
+Full rule background is in `05`, §4; this is the data-flow version.
+
+1. TA: throughout the year, its own systems accumulate the underlying data Form TA-2 will need —
+   items received for transfer, individual securityholder accounts on the master file (`08`, §1),
+   turnaround-time compliance under Rule 17Ad-2, and lost-securityholder search activity under
+   Rule 17Ad-17 (§7.10) — across **every fund and client the TA services**, not just this one
+   corporate treasury account.
+2. TA (internal compliance function): compiles this into the Form TA-2 questions — account
+   volumes and breakdowns by security type, aged record differences and buy-in report counts,
+   17Ad-2 turnaround compliance status, open-end fund purchase/redemption transaction volume, and
+   lost-securityholder search/escheatment activity for the year (`05`, §4).
+3. TA → SEC (EDGAR): files **Form TA-2 by March 31** of the following year.
+
+This is the one scenario in this doc where the "client" is really the TA's whole book of business,
+not the corporate treasury relationship modeled elsewhere — included because it's the TA's own
+core annual compliance obligation, and every other scenario in this doc ultimately feeds it.
+
+### 7.12 Scenario: Rule 17Ad-13 annual internal control study
+
+**Trigger**: annually, independent of any single client relationship — the TA's control
+environment itself gets audited.
+
+1. TA: engages an independent public accountant to study and evaluate its internal accounting
+   controls over securities transfer and fund safeguarding — covering transfers, ownership
+   registration, corporate-action transfers, dividend/interest activity, and dividend reinvestment
+   programs (`05`, §2). In practice, this is satisfied via an **AICPA SSAE 18 (SOC 1 Type II)**
+   engagement.
+2. Independent Accountant → TA: delivers the report.
+3. TA → SEC/ARA: files the report **within 90 calendar days** of the study date.
+
+Like §7.11, this runs at the level of the TA's whole operation, not this specific fund or client —
+but the corporate treasury client's account activity (subscriptions, redemptions, dividend
+reinvestment, transfers) is part of what the auditor's sample testing would actually examine.
+
+### 7.13 Scenario: Rule 17Ad-11 aged record difference
+
+**Trigger**: the roll-forward described throughout `08` breaks — the balance file doesn't tie to
+activity plus prior balance, or to the control book (`08`, §1) — and stays unresolved.
+
+1. TA: detects a record difference (`08`, §1.1) — e.g., a discrepancy between the sum of all
+   shareholder balances and the fund's control book total, or a certificate-detail mismatch that
+   "cannot be immediately resolved."
+2. TA: works to resolve it through normal reconciliation. If it's still open after **30 calendar
+   days**, it becomes an **aged record difference** under Rule 17Ad-11.
+3. TA → Fund (issuer): reports the aged difference within 10 business days of month-end, with
+   dollar thresholds scaled to the fund's size.
+4. TA → SEC/ARA: separately, if the aged difference triggered a **buy-in** (forced purchase to
+   cover a failure to deliver/transfer), the TA files a **quarterly buy-in report within 10
+   business days of quarter-end**.
+5. TA: continues to report the same unresolved item each quarter until it's actually closed out —
+   this isn't a one-time notice, it's ongoing until resolution.
+
+### 7.14 Scenario: Suspicious Activity Report (SAR) and OFAC blocked-property reporting
+
+**Trigger**: the TA, executing the fund's AML program as its delegate (`05`, §3 — legal
+responsibility stays with the fund, not the TA, but the TA is usually the one actually watching
+the transaction stream), spots activity that looks suspicious, or a transaction matches an OFAC
+sanctions list and must be blocked.
+
+**Branch A — Suspicious Activity Report:**
+
+1. TA: identifies a transaction or pattern (on this account or any other) that appears suspicious
+   under the fund's AML program — e.g., structuring, activity inconsistent with the account's
+   known purpose, or a hit that doesn't quite justify an outright OFAC block but still warrants
+   scrutiny.
+2. TA → Fund's AML Compliance Officer: escalates internally (since the fund, not the TA, is the
+   regulated entity for BSA/AML purposes).
+3. Fund's AML Compliance Officer → FinCEN: files a **Suspicious Activity Report (SAR)** via the
+   **BSA E-Filing System** within **30 calendar days** of initial detection (extendable to 60 days
+   total if no suspect has been identified yet).
+4. **Confidentiality is mandatory**: neither the TA nor the fund may disclose to the client (or
+   anyone else) that a SAR was filed — this is a legal requirement, not a discretionary choice.
+5. If the same suspicious activity continues: FinCEN guidance suggests filing a follow-up SAR
+   roughly every 90 days, with a 120-calendar-day filing deadline from the prior related SAR —
+   though institutions retain some discretion on exact timing within the regulatory limits.
+
+**Branch B — OFAC blocked-property reporting:**
+
+1. TA: screens the account/transaction against OFAC's sanctions lists (as the fund's delegate,
+   `05` §3) and gets a match requiring the transaction to be **blocked** rather than processed.
+2. Fund/TA → OFAC: reports the blocking **within 10 business days** of the blocking action (31
+   CFR §501.603).
+3. Fund/TA → OFAC: separately, reports all property blocked as of that point, **annually by
+   September 30** (31 CFR §501.604).
+
+### 7.15 Scenario: Fund-level SEC filings sourced from TA data (Form N-CEN, N-MFP, N-CSR)
+
+**Trigger**: routine periodic filing deadlines — this scenario shows how the corporate treasury
+client's own activity (and every other shareholder's) rolls up into the fund's own SEC reporting,
+prepared by the fund administrator rather than the TA directly, but built on TA-sourced data.
+
+1. TA → Fund Administrator: supplies the underlying shareholder/account data these filings need —
+   account counts and breakdowns, service-provider relationships, and (for N-CSR) per-share
+   financial figures derived from the fund's books.
+2. **Form N-CEN** (annual census-type report, filed via structured XML on EDGAR **within 75 days
+   of fiscal year-end**): Fund Administrator → SEC — covers the fund's service providers, share
+   classes, and operational characteristics for the year.
+3. **Form N-MFP** (monthly portfolio holdings report — **specific to money market funds**; this
+   is the correct form for the fund modeled throughout this doc, not Form N-PORT, which explicitly
+   **excludes** Rule 2a-7 money market funds): Fund Accounting/Administrator → SEC, filed monthly,
+   made public after a delay. As of the SEC's 2023 money market fund reforms, N-MFP includes
+   information about **large fund shareholders** — worth flagging because a substantial corporate
+   treasury allocation, of the kind modeled in this doc, could plausibly cross whatever threshold
+   makes an investor a reportable "large shareholder" on this form, though the exact threshold
+   wasn't independently confirmed in this research pass.
+4. **Form N-CSR** (certified annual/semi-annual shareholder report): Fund Administrator/Printer
+   (`07`, §12) → SEC — includes the fund's financial statements and per-share activity, built from
+   the same underlying TA/fund-accounting records as everything else in this doc.
+
+[SEC Form N-CEN](https://www.sec.gov/files/formn-cen.pdf) · [17 CFR 249.330, eCFR](https://www.ecfr.gov/current/title-17/chapter-II/part-249/subpart-D/section-249.330) · [17 CFR 270.30a-1, Cornell LII](https://www.law.cornell.edu/cfr/text/17/270.30a-1) ·
+[Form N-MFP / Rule 30b1-7 and the 2023 MMF reforms, Harvard Law Forum on Corporate Governance](https://corpgov.law.harvard.edu/2023/08/22/the-secs-money-market-fund-reforms/) · [SEC — Form N-PORT excludes money market funds](https://www.sec.gov/data-research/sec-markets-data/form-n-port-data-sets) ·
+[FinCEN — SAR FAQs](https://www.fincen.gov/resources/frequently-asked-questions-regarding-fincen-suspicious-activity-report-sar) ·
+[31 CFR §501.603 / §501.604, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-V/part-501/subpart-C/section-501.603)
+
 ---
 
 ## 8. Flagged gaps / not independently verified
@@ -552,6 +677,18 @@ flagging rather than glossing over.
 - Exact state-by-state handling of escheated mutual fund shares — whether states uniformly expect
   cash proceeds from a forced redemption (as assumed in §7.10) or sometimes expect an in-kind
   transfer of the shares themselves — not independently verified across states.
+- **The exact asset/investment threshold that makes a shareholder a reportable "large fund
+  shareholder" on Form N-MFP** (§7.15) — the 2023 MMF reforms added this disclosure item, but the
+  specific dollar or percentage threshold wasn't independently confirmed in this research pass.
+- **Which specific N-CEN data points derive from TA-supplied data versus other sources** (fund
+  accounting, the adviser, the administrator's own records) — §7.15 describes the general
+  TA-to-administrator data flow but doesn't itemize which exact N-CEN fields trace back to the TA
+  specifically.
+- Whether the FinCEN SAR 90-day/120-day continuing-activity guidance in §7.14 is a firm rule or
+  discretionary guidance — the search results described it as guidance institutions can deviate
+  from within the general regulatory limits, not a hard requirement; presented that way in §7.14,
+  but worth double-checking against a primary FinCEN source if exact SAR-timing compliance matters
+  for a real implementation.
 
 ## Sources
 
