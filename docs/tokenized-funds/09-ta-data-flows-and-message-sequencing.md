@@ -55,13 +55,15 @@ investors, distributing only via its own Benji App (individuals) or **Institutio
   business" exemption that used to exempt/defer property owed between businesses, but whether
   that exemption (where it still exists in non-RUUPA states) has ever applied to mutual fund share
   holdings specifically isn't settled by anything found in this research pass.
-- **Fifteen scenarios in §7**: the ten client/fund-transaction scenarios (subscription, redemption,
+- **Sixteen scenarios in §7**: the ten client/fund-transaction scenarios (subscription, redemption,
   dividend distribution/reinvestment, capital gain distribution/reinvestment, tax certification,
-  Blue Sky/Rule 24f-2, wash sale, escheatment) plus **five compliance-reporting scenarios that run
-  at the level of the TA's or fund's whole operation, not just this one client relationship**:
-  the TA's own **Form TA-2** annual report, its **Rule 17Ad-13** internal control audit, **Rule
-  17Ad-11** aged record difference reporting, **SAR/OFAC** reporting, and the fund-level **Form
-  N-CEN/N-MFP/N-CSR** filings built on TA-sourced data.
+  Blue Sky/Rule 24f-2, wash sale, escheatment), a **non-financial maintenance scenario**
+  (beneficiary/address changes — real activity, but tracked separately from the balance-affecting
+  activity file), plus **five compliance-reporting scenarios that run at the level of the TA's or
+  fund's whole operation, not just this one client relationship**: the TA's own **Form TA-2**
+  annual report, its **Rule 17Ad-13** internal control audit, **Rule 17Ad-11** aged record
+  difference reporting, **SAR/OFAC** reporting, and the fund-level **Form N-CEN/N-MFP/N-CSR**
+  filings built on TA-sourced data.
 - **Money market funds file Form N-MFP, not Form N-PORT** — worth flagging since N-PORT is the
   form most other registered funds use for monthly portfolio holdings, but Rule 2a-7 money market
   funds (the fund type modeled throughout this doc) are explicitly excluded from N-PORT and use
@@ -639,6 +641,49 @@ prepared by the fund administrator rather than the TA directly, but built on TA-
 [Form N-MFP / Rule 30b1-7 and the 2023 MMF reforms, Harvard Law Forum on Corporate Governance](https://corpgov.law.harvard.edu/2023/08/22/the-secs-money-market-fund-reforms/) · [SEC — Form N-PORT excludes money market funds](https://www.sec.gov/data-research/sec-markets-data/form-n-port-data-sets) ·
 [FinCEN — SAR FAQs](https://www.fincen.gov/resources/frequently-asked-questions-regarding-fincen-suspicious-activity-report-sar) ·
 [31 CFR §501.603 / §501.604, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-V/part-501/subpart-C/section-501.603)
+
+### 7.16 Scenario: Non-financial maintenance update (change of beneficiary, change of address)
+
+**Trigger**: the corporate treasury client asks to update account information that doesn't move
+any shares or cash — a change of address, a change to the designated authorized signer/beneficiary
+on the account, updated bank/ACH wiring instructions, or a similar demographic update.
+
+**Direct answer to the question this scenario is here to address**: yes, this generates an entry
+in the TA's own records — but it's a **non-financial** activity entry, not a financial one, and
+that distinction actually changes what happens to it. Per `08`, §1: "financial activities involve
+the movement of mutual fund shares or cash; non-financial activities involve the movement of
+data, such as a change of shareholder address" — this is the formal industry definition, not an
+approximation. Concretely:
+
+1. Corporate Treasury Client → Investor Portal: submits the maintenance request (e.g., new
+   registered address, new authorized signer, updated wiring instructions).
+2. Investor Portal → TA: request arrives directly, the same channel as any order (§3).
+3. TA: validates the request — for a legal-entity account, a change to the authorized signer or
+   control person is exactly the kind of event that could require **re-checking the FinCEN
+   beneficial-ownership information** captured at onboarding (§2), not just accepting the change
+   at face value, since it may mean the person with "significant responsibility to control,
+   manage, or direct" the entity has changed.
+4. TA: posts the update to the account record. **This does not touch the activity file/balance
+   file roll-forward described in `08`, §1** — there's no share credit/debit, no dollar amount, no
+   effect on the fund's control book. It's a change to account *data*, not account *balance*.
+5. TA: still logs the change in its own transaction/inquiry records, because **Rule 17Ad-6**
+   requires a TA to maintain logs of written inquiries and their responses, and general account
+   transaction journals (`05`, §2) — this recordkeeping duty doesn't distinguish financial from
+   non-financial changes; both have to be logged and retained (**Rule 17Ad-7** retention periods,
+   `05` §2), even though only one of them moves the balance-file needle.
+6. TA → Shareholder Reporting: reflects the updated information (new address, new authorized
+   contact) on the client's next statement and future correspondence.
+7. TA → Investor Portal: sends confirmation that the change was processed — a non-financial
+   confirmation, distinct from a trade confirmation.
+
+**What this scenario deliberately does not claim**: earlier in this project, when the model
+included NSCC Networking (since removed from this doc per its current direct-at-fund scope), a
+change like this would have gone out on a separate DTCC file from the balance-affecting Activity
+Report. In this direct-at-fund model there's no such external file to transmit, since there's no
+separate intermediary needing a copy of the change — the update lives entirely in the TA's own
+system of record, confirmed straight back to the client's portal.
+
+[17 CFR 240.17Ad-6, Cornell LII](https://www.law.cornell.edu/cfr/text/17/240.17Ad-6) · `05`, §2 (recordkeeping) and `08`, §1 (financial vs. non-financial definition)
 
 ---
 
