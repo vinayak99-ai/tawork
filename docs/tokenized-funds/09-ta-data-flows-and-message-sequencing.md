@@ -402,15 +402,19 @@ longer and more load-bearing than in prior docs — **do not fill these gaps wit
 3. **A NACHA SEC code specific to "mutual fund transactions"** — does not exist; use PPD/WEB/CCD
    per the receiver/channel, not a fund-specific code. The new 2026 "PURCHASE" Company Entry
    Description is plausible but not confirmed for fund use.
-4. **A named standard file format for NAV transmission** (fund accounting → TA) — proprietary/
-   vendor-specific (e.g., Milestone Group), not a published industry standard.
+4. **A named standard file format for NAV transmission** (fund accounting → TA) — still
+   proprietary/vendor-specific internally (e.g., Milestone Group). **Partially resolved**: the
+   *next* leg, TA/fund → intermediary, does have a named standard — **NSCC MFPS I — Price/Rate**,
+   with a confirmed daily cutoff at cycle 98/10:45 p.m. ET. See `06`, §2.6.
 5. **A named standard format for TA → fund-accounting aggregate net-flow reporting** —
    directionally confirmed as a real process, format unconfirmed.
 6. **Whether US TAs affirmatively never use SWIFT MT103/pacs.008** — absence-of-evidence
    inference, not a sourced negative.
-7. **Content of the ICI market-close operations PDF and DTCC Fund/SERV/Networking lifecycle
-   diagrams** — located but not text-extracted in this research pass; read them directly before
-   citing specifics beyond what's in `06`.
+7. ~~Content of the ICI market-close operations PDF~~ — **resolved**: read in full; see `06`,
+   §2.4–2.6 and `08`'s AM/PM accrual mechanics for what it confirmed (Networking's B50/B51/B52/F55
+   record types, ACATS-Fund/SERV's two-business-day acknowledgment rule and Mutual Fund Cleanup
+   consequence, Reject Code 016, and MFPS I's role as the standard NAV/rate distribution channel).
+   DTCC's own Fund/SERV/Networking lifecycle diagram PDFs remain unread.
 8. **DTCC's timeline/scope for an ISO 20022 interface layered onto Fund/SERV** — mentioned in
    secondary summaries, not confirmed against a primary DTCC page with dates.
 9. **Board/administrator reporting formats** — not researched to message-format detail.

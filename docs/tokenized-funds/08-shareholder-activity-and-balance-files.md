@@ -101,6 +101,13 @@ words:
 (already the primary source for `06`, §2 — this doc pulls the activity/balance-specific detail out
 of the same document).
 
+**The formal industry definition, confirmed independently**: ICI's UMC operations guide states
+this split explicitly and in almost identical terms: *"Financial activities involve the movement
+of mutual fund shares or cash. Nonfinancial activities involve the movement of data, such as a
+change of shareholder address."* Two independent industry sources landing on the same definition
+is strong confirmation this is the standard framing, not one vendor's terminology.
+[ICI — Mutual Fund Operations Planning Guide for an Unexpected Market Close, March 2019](https://www.ici.org/system/files/attachments/pdf/19_ppr_marketclose.pdf) **[PRIMARY, cross-industry document]**
+
 The individual activity-level record is the **F55 Activity record**, carrying a **Transaction
 Type** code identifying the event (e.g., Type 22 = "non–tax reportable share class exchange," Type
 35 = "direct voluntary share class exchange" — confirmed via an ICI industry paper on share-class
@@ -185,6 +192,26 @@ and cost-basis reporting).
 | **Dividend reinvestment (shares)** | Same income, used to buy new shares instead | Same 1099-DIV Box 1a; new shares get a new cost-basis lot |
 | **Capital gain distribution (cash)** | Fund-level realized gains passed through | 1099-DIV **Box 2a** (Total Capital Gain Distributions — **always reported as long-term**, regardless of the shareholder's own holding period; short-term fund gains instead flow into Box 1a ordinary dividends), with sub-boxes 2b/2c/2d/2e/2f for §1250, §1202, 28%-rate collectibles, and §897 FIRPTA amounts |
 | **Capital gain reinvestment (shares)** | Same gain, reinvested into new shares | Same 1099-DIV boxes; new cost-basis lot created |
+
+#### When accrual entitlement actually starts/stops — "AM/PM" (pay-on-credit vs. pay-on-debit)
+
+Confirmed via ICI's **"Mutual Fund Operations Planning Guide for an Unexpected Market Close"**
+(March 2019, read in full) — this is the operational rule that determines exactly which day's
+dividend/accrual a purchase or redemption transaction is entitled to, and it's not simply "the
+trade date":
+
+- **"AM" / "pay on credit" functionality**: shares acquired (purchase) begin accruing interest on
+  the **transaction settlement date**; shares sold (redemption) stop accruing interest on the
+  **transaction trade date**.
+- **"PM" / "pay on debit" functionality**: shares acquired begin accruing interest on the **first
+  day following settlement**; shares sold stop accruing interest on the **settlement date**.
+- **Default**: funds that don't specifically designate a midday trading cutoff in their
+  prospectus/SAI function as **"PM"/pay-on-debit** by default.
+- Money market and fixed-income funds are the products most likely to observe an early midday
+  cutoff that triggers "AM" functionality; this is a fund-level policy choice disclosed in the
+  prospectus, not a universal industry default.
+
+[ICI — Mutual Fund Operations Planning Guide for an Unexpected Market Close, March 2019](https://www.ici.org/system/files/attachments/pdf/19_ppr_marketclose.pdf) **[PRIMARY, cross-industry document]**
 
 ### 2.3 Retirement-account-specific activity
 
@@ -283,6 +310,7 @@ inferred.
 - [DTCC — Standardized Data Reporting (SDR)](https://dtcclearning.com/products-and-services/mutual-fund-services/networking/standardized-data-reporting-sdr.html)
 - [DTCC FAST program](https://www.dtcc.com/asset-services/agent-services/fast)
 - [ICI — Mutual Fund Share Class Conversions: A Matrix of Possibilities (2020)](https://www.ici.org/system/files/attachments/20_ppr_share_class_exchanges.pdf)
+- [ICI — Mutual Fund Operations Planning Guide for an Unexpected Market Close, March 2019](https://www.ici.org/system/files/attachments/pdf/19_ppr_marketclose.pdf)
 - [SEC EDGAR — Transfer Agency and Service Agreement, Schedule B](https://www.sec.gov/Archives/edgar/data/824036/000119312508022854/dex99h2.htm)
 - [IRS Form 1099-DIV instructions](https://www.irs.gov/instructions/i1099div)
 - [IRS Form 1099-R instructions (distribution codes)](https://www.irs.gov/instructions/i1099r)
