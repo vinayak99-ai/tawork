@@ -421,11 +421,17 @@ Form D/Reg D offerings). Mutual fund shares sold across state lines are generall
 *registration* requirements for "covered securities" (which includes '40 Act fund shares), but
 states retain notice-filing and fee authority.
 
-**Not independently confirmed**: a single dominant, specifically-mutual-fund-focused named
-third-party blue-sky compliance vendor. Search results returned mostly private-placement/Reg D
-blue-sky service providers, not confirmed mutual-fund-specific filing agents. **This category
-needs further, more targeted research** (e.g., ICI's Service Directory, or a specific fund's SAI
-service-provider exhibit) before treating any single firm as the standard provider.
+**Update**: `09`, §7.8 now walks through the actual mechanics with a concrete state example
+(Alabama's Form NF, tiered fees, 12-month renewal cycle) and the related federal Rule 24f-2/Form
+24F-2 annual filing that runs off the same TA-sourced net-sales data — worth reading alongside
+this entry.
+
+**Still not independently confirmed**: a single dominant, specifically-mutual-fund-focused named
+third-party blue-sky compliance vendor (as opposed to which entity typically handles the filing —
+fund counsel, per `09`, §1). Search results returned mostly private-placement/Reg D blue-sky
+service providers, not confirmed mutual-fund-specific filing agents. **This category needs further,
+more targeted research** (e.g., ICI's Service Directory, or a specific fund's SAI service-provider
+exhibit) before treating any single firm as the standard provider.
 [NASAA EFD description](https://www.investnext.com/blog/blue-sky-filing/) (secondary source,
 flagged); the NSMIA framework itself is background knowledge here, not independently
 re-verified against a primary source in this pass.

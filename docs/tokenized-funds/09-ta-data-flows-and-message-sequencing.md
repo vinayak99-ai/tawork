@@ -36,9 +36,15 @@ investors, distributing only via its own Benji App (individuals) or **Institutio
   status — **backup withholding doesn't apply either, and the fund generally isn't even required to
   issue a 1099-DIV at all**. That exemption evaporates the moment backup withholding actually gets
   triggered (e.g., no valid W-9 on file) — then the normal reporting obligations kick back in.
-- **Seven scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
-  reinvestment, capital gain distribution (cash), capital gain reinvestment, and the corporate
-  tax-certification scenario.
+- **Blue Sky reporting is real but federally preempted for most of what it used to cover**: since
+  the fund's shares are a registered '40 Act security, **NSMIA (1996)** preempts states from
+  imposing their own registration/merit review — but states still get to require a **notice
+  filing plus a fee**, and there's a **separate federal annual filing (Form 24F-2, Rule 24f-2)**
+  that runs on the same underlying data: the fund's aggregate net share sales for the fiscal year,
+  sourced directly from the TA's own records.
+- **Eight scenarios in §7**: subscription, redemption, dividend distribution (cash), dividend
+  reinvestment, capital gain distribution (cash), capital gain reinvestment, the corporate
+  tax-certification scenario, and the annual Blue Sky/Rule 24f-2 notice filing cycle.
 
 ---
 
@@ -53,9 +59,13 @@ investors, distributing only via its own Benji App (individuals) or **Institutio
 | **Custodian Bank** | Holds the fund's actual portfolio securities and cash (`07`, §3). |
 | **Payment System** | Fedwire (primary, given treasury-scale same-day movements) or ACH (secondary) — §4. |
 | **Shareholder/IRS Reporting** | Account statements, trade confirmations, and (where applicable) 1099-DIV — §6. |
+| **Fund Counsel / Compliance** | Prepares and files the fund's federal and state securities-law notice filings (§7.8) — a periodic, fiscal-year-driven flow rather than a per-transaction one. |
+| **SEC / State Securities Regulators** | Recipients of the annual federal and state notice filings that keep the fund's shares eligible for continued sale (§7.8). |
 
 The TA talks directly to the client's portal on one side and to Fund Accounting/Custodian/Payment
-rails on the other.
+rails on the other. Fund Counsel/Compliance sits one step removed from the daily transaction flow
+— it draws periodically on the TA's aggregated sales data rather than participating in individual
+orders.
 
 ---
 
@@ -342,6 +352,58 @@ instead, a different scenario this doc doesn't model).
 (secondary sources summarizing IRS Form 1099-DIV instructions — corporate exemption itself is
 standard IRS guidance, cross-checked across multiple summaries agreeing on the same rule)
 
+### 7.8 Scenario: Blue Sky / annual state notice filing and Rule 24f-2
+
+**Trigger**: this one isn't per-transaction — it's a **fiscal-year-end cycle**, but it depends on
+the same TA-sourced sales data as every other scenario in this doc, and it's what keeps the fund
+legally eligible to keep accepting orders like the corporate treasury client's in §7.1 in every
+state where it has investors. Two related but distinct filings run off this same data: a federal
+one (Rule 24f-2) and a state one ("Blue Sky").
+
+**Background, briefly**: because the fund's shares are registered under the '40 Act, the
+**National Securities Markets Improvement Act of 1996 (NSMIA)** preempts states from imposing
+their own registration or merit-review requirements on it — states can no longer make the fund
+qualify its offering state-by-state the way a non-covered security would. What NSMIA leaves in
+place is narrower: states can still require a **notice filing plus a fee** for the privilege of
+being sold in-state. Separately, at the federal level, **Rule 24f-2** under the Investment Company
+Act lets an open-end fund register an *indefinite* number of shares up front, in exchange for
+filing an **annual notice (Form 24F-2)** with the SEC and paying a registration fee calculated
+from the fiscal year's **aggregate net sales** (shares sold minus shares redeemed) — not a
+per-order fee.
+
+1. TA: over the fiscal year, every order in §7.1–§7.2 (and every other fund investor's activity)
+   accumulates in the TA's activity file/balance file records (`08`, §1) — this is the same
+   roll-forward data already described throughout this doc, now aggregated across the whole fiscal
+   year instead of read one transaction at a time.
+2. TA → Fund Counsel/Compliance: at fiscal year-end, supplies the fund's **aggregate net sales**
+   for the year (and, where a specific state's fee depends on in-state sales rather than a flat
+   asset-tier fee, sales attributable to investors domiciled in that state — which could include
+   the state where this corporate treasury client is headquartered, if that state isn't already
+   covered by an existing notice filing).
+3. Fund Counsel/Compliance → SEC: files **Form 24F-2** within **90 days of fiscal year-end**,
+   paying the federal registration fee computed from that net-sales figure. Interest accrues if
+   the fee is paid late.
+4. Fund Counsel/Compliance → State Securities Regulators: separately files a **state notice
+   filing** in each state where the fund is sold — many states use a standardized form for this
+   (one real example: Alabama requires **Form NF**, executed by the fund, with a consent to
+   service of process, and a **fee tiered by the fund's total net assets** — $350 up to $25M,
+   rising to $2,000 at $250M+). **This varies meaningfully by state** — fee structure, required
+   form, and even whether a notice filing is required at all differ from state to state, and some
+   states have reduced or eliminated these requirements over time. Don't assume Alabama's specific
+   numbers apply elsewhere; treat it as one illustrative example, not a universal figure.
+5. State Securities Regulator → Fund Counsel/Compliance: the notice filing is typically effective
+   for a fixed period (Alabama: **12 months** from receipt or SEC effectiveness, whichever is
+   later), with a **renewal window before expiration** (Alabama: within 60 days prior).
+6. Fund Counsel/Compliance: tracks each state's renewal deadline going forward — this is a
+   recurring compliance calendar, not a one-time filing, for as long as the fund keeps selling
+   shares in that state.
+
+[National Securities Markets Improvement Act background, PipelineRoad](https://pipelineroad.com/glossary/blue-sky-laws) ·
+[Alabama Securities Commission — Notice Filings for Mutual Funds](https://asc.alabama.gov/statute/notice-filings-for-mutual-funds/) (illustrative single-state example, not a universal standard) ·
+[17 CFR 270.24f-2, eCFR](https://www.ecfr.gov/current/title-17/chapter-II/part-270/section-270.24f-2) ·
+[SEC Form 24F-2](https://www.sec.gov/files/form24f-2.pdf) ·
+[DFIN — What is SEC Form 24F-2](https://www.dfinsolutions.com/knowledge-hub/thought-leadership/knowledge-resources/form-24f-2)
+
 ---
 
 ## 8. Flagged gaps / not independently verified
@@ -358,6 +420,16 @@ standard IRS guidance, cross-checked across multiple summaries agreeing on the s
 - Whether *all* Rule 2a-7 government/retail money market funds offering direct institutional
   access strike multiple intraday NAVs, or only some — the ICI source describes this as common
   practice for funds serving cash-management clients, not a universal requirement.
+- **Blue Sky notice-filing requirements vary by state, and this doc verified only one state's
+  specific numbers** (Alabama's Form NF, fee tiers, and 12-month renewal cycle) as an illustrative
+  example — whether every state still requires a notice filing at all, what each charges, and
+  which form each uses were not independently checked state-by-state. Some states have reduced or
+  eliminated notice-filing requirements for '40 Act funds over time; treat the specific figures in
+  §7.8 as one data point, not a 50-state standard.
+- Whether a state's notice-filing fee is calculated from statewide asset tiers (as in Alabama) or
+  from in-state sales volume specifically (which would require the TA to report state-attributed
+  sales, not just an aggregate) — likely varies by state; not independently confirmed either way
+  beyond the single Alabama example.
 
 ## Sources
 
@@ -372,3 +444,4 @@ standard IRS guidance, cross-checked across multiple summaries agreeing on the s
 - [camt.052 vs 053 vs 054 explainer](https://validatefin.com/en/blog/camt-052-vs-053-vs-054) · [MT940 to ISO 20022 migration](https://treasuryxl.com/blog/the-future-of-financial-messaging-migrating-from-mt940-to-iso-20022/)
 - [SEC No-Action Letter, ICI, June 1 2018 (ICA §22(e))](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm)
 - [Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) · [IRS Instructions for the Requester of Form W-9](https://www.irs.gov/instructions/iw9) · [LegalClarity — Do Corporations Get a 1099?](https://legalclarity.org/do-corporations-get-1099-forms/) · [BoomTax — 1099-DIV Filing Threshold](https://boomtax.com/tax-forms/what-is-1099-div-reporting-threshold)
+- [PipelineRoad — Blue Sky Laws glossary (NSMIA/covered securities background)](https://pipelineroad.com/glossary/blue-sky-laws) · [Alabama Securities Commission — Notice Filings for Mutual Funds](https://asc.alabama.gov/statute/notice-filings-for-mutual-funds/) · [17 CFR 270.24f-2, eCFR](https://www.ecfr.gov/current/title-17/chapter-II/part-270/section-270.24f-2) · [SEC Form 24F-2](https://www.sec.gov/files/form24f-2.pdf) · [DFIN — What is SEC Form 24F-2](https://www.dfinsolutions.com/knowledge-hub/thought-leadership/knowledge-resources/form-24f-2)
