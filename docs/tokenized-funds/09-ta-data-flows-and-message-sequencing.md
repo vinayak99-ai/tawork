@@ -289,17 +289,29 @@ Same format as before: **what starts it**, then a simple `Entity → Entity: wha
 default for a treasury cash-sweep arrangement, where the point is to keep idle cash working rather
 than pull it out.
 
-1. Fund Board/Accounting → TA: same dividend declaration as §7.3, step 1.
-2. TA: calculates the client's dividend amount; the account's election is **Reinvest**.
-3. TA: uses the dividend amount to buy new shares at the current NAV — **no cash leaves the
-   fund**; posts as a credit to both the activity file and balance file (`08`, §1), with a new
-   cost-basis lot for the new shares.
-4. TA → Fund Accounting: reports the total dividends reinvested (shares issued, no net cash
-   impact).
+**The key mechanical difference from §7.3, stated up front**: the sequence here is
+**Fund Accounting → TA → (done)** — the **Payment System never gets invoked**. Compare to §7.3's
+cash payout, where the chain continues one step further to **Fund Accounting → TA → Payment
+System → client's bank**. Reinvestment isn't "pay cash, then immediately buy it back" — it's the
+TA converting a payable-but-unpaid dividend directly into new shares as one internal step, so
+there's no external cash leg for a payment rail to carry in the first place.
+
+1. Fund Board/Accounting → TA: same dividend declaration as §7.3, step 1 (rate, record/ex/payable
+   dates, via the same proprietary feed as §4).
+2. TA: calculates the client's dollar dividend entitlement (shares held on record date × rate);
+   checks the account's standing election — **Reinvest**.
+3. TA: converts that dollar amount directly into new shares at the payable-date NAV — an
+   **internal TA transaction**, not an external payment. This posts as a credit to both the
+   activity file and balance file (`08`, §1), with a new cost-basis lot for the new shares.
+   **No Fedwire, no ACH, no instruction to any bank** — nothing for §5's payment rails to do here.
+4. TA → Fund Accounting: reports the total dividends reinvested (shares issued, zero net cash
+   impact) so Fund Accounting's books tie out — total shares outstanding increases, cash position
+   is unaffected.
 5. TA → Shareholder Reporting: updates the account's share balance and statement.
 6. TA → IRS Reporting (year-end): same exemption logic as §7.3 — reinvesting doesn't change
-   whether a 1099-DIV is required; that still turns on backup-withholding status (§7.7), not on
-   the cash-vs-reinvest election.
+   whether a 1099-DIV is required (that still turns on backup-withholding status, §7.7), **and it
+   doesn't make the dividend non-taxable either** — the shareholder owes tax on it the same as a
+   cash payout, even though no cash ever left the fund.
 
 ### 7.5 Scenario: Capital gain distribution (cash)
 
