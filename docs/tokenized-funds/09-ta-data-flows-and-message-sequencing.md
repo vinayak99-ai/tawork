@@ -42,8 +42,11 @@ a technical reference is actively misleading, not just incomplete.
 - **Redemption proceeds must be paid within 7 calendar days** (ICA §22(e)) — the one narrow,
   SEC-sanctioned exception being a temporary hold when elder/vulnerable-adult financial
   exploitation is suspected (2018 no-action letter).
-- **Full step-by-step sequences** for a subscription, a redemption, and a dividend distribution are
-  in §6 — this is the actual "who sends what to whom, in what order" walkthrough.
+- **Seven full scenario walkthroughs** in §8 — subscription, redemption, dividend distribution
+  (cash), dividend reinvestment, capital gain distribution (cash), capital gain reinvestment, and
+  tax withholding on a distribution (the one that chains TA → Accounting → Payments →
+  Shareholder Reporting → IRS Reporting in a single pass) — each as a simple "who sends what to
+  whom, in what order" list.
 
 ---
 
@@ -368,68 +371,155 @@ way as §2 (proprietary/vendor file feed, likely intra-firm when custodian and T
 
 ---
 
-## 8. Full step-by-step sequences
+## 8. Scenarios — trigger and steps
 
-### 8.1 A subscription (purchase) order, start to finish
+Every scenario below follows the same shape: **what starts it**, then a simple numbered
+`Entity → Entity: what happens` walkthrough. Detail and citations for each individual fact live in
+the earlier sections/docs referenced inline — this section is deliberately kept light so the
+sequence itself stays easy to follow.
 
-1. Investor places an order via the distributor's platform/advisor, or a direct fund portal.
-2. Order reaches the TA — via **Fund/SERV 001 Order** (US domestic, §1.1) or **setr.010.001
-   Subscription Order** (cross-border, §1.2).
-3. TA validates the order (KYC/AML per §7, account status, minimum investment, blue-sky
-   eligibility per `07`, §17) — but **cannot finalize pricing yet**.
-4. TA waits for fund accounting to strike the day's NAV after market close (Rule 22c-1, §2.1) —
-   via the proprietary/unstandardized feed described in §2.2.
-5. TA prices the order at that NAV, calculates shares issued, and posts the transaction — this is
-   simultaneously an **activity file entry (credit)** and a **balance file update**, per `08`, §1.
-6. TA sends confirmation back through the same channel it came in on (**Fund/SERV** confirmation or
-   **setr.012.001 Subscription Order Confirmation**).
-7. TA reports the day's aggregate net inflow to fund accounting (§2.3) so incoming cash gets
+### 8.1 Scenario: Subscription (purchase) order
+
+**Trigger**: investor places a buy order.
+
+1. Investor → Portal/Distributor: places the order.
+2. Portal/Distributor → TA: order arrives via **Fund/SERV 001 Order** (US domestic, §1.1) or
+   **setr.010.001 Subscription Order** (cross-border, §1.2).
+3. TA: validates the order (KYC/AML per §7, account status, minimum investment, blue-sky
+   eligibility per `07` §17) — **cannot price it yet**.
+4. Fund Accounting → TA: sends the day's NAV once struck after market close (Rule 22c-1 forward
+   pricing, §2.1) — via the proprietary, unstandardized feed described in §2.2.
+5. TA: prices the order at that NAV, calculates shares issued, posts the transaction — this is
+   simultaneously an **activity file credit** and a **balance file update** (`08`, §1).
+6. TA → Portal/Distributor: sends confirmation (**Fund/SERV** confirm or **setr.012.001**).
+7. TA → Fund Accounting: reports the day's aggregate net inflow (§2.3) so incoming cash gets
    invested appropriately.
-8. TA (or, per the actual cash rail, the fund's payment processor) debits the investor's bank
-   account via **ACH (PPD or WEB, §3.1)** or processes the incoming wire via **Fedwire (§3.2)**.
-9. Custodian confirms the cash receipt via an end-of-day **MT940/camt.053** statement (§3.4).
-10. TA generates the shareholder's trade confirmation statement (§6).
+8. TA/Payment Agent → Investor's bank: debits the purchase amount via **ACH (PPD/WEB, §3.1)** or
+   receives it via **Fedwire (§3.2)**.
+9. Custodian → TA: confirms the cash receipt via an end-of-day **MT940/camt.053** statement (§3.4).
+10. TA → Shareholder: sends the trade confirmation statement (§6).
 
-### 8.2 A redemption order, start to finish
+### 8.2 Scenario: Redemption order
 
-1. Investor requests redemption via portal/advisor.
-2. Order reaches TA via **Fund/SERV 001 Order** (sell side) or **setr.004.001 Redemption Order**.
-3. TA validates the order and waits for the day's NAV (same Rule 22c-1 dependency as §8.1).
-4. TA prices the redemption, debits the shareholder's share balance (activity file/balance file,
-   `08`, §1), and confirms via **Fund/SERV** or **setr.006.001 Redemption Order Confirmation**.
-5. TA reports the day's aggregate net outflow to fund accounting (§2.3) — this may trigger a
-   security sale if the fund's cash buffer is insufficient (Rule 22e-4 liquidity management).
-6. Custodian funds the disbursement; TA/payment agent disburses proceeds via **ACH credit** or
-   **wire (Fedwire)**, per §3.1/§3.2.
-7. **Hard deadline**: proceeds must be paid within **7 calendar days** of tender, per **ICA
-   §22(e)** — confirmed directly, including the "unreasonable, undisclosed and unforeseen delays"
-   rationale in the statute's legislative purpose. The one narrow, SEC-sanctioned exception: a
-   **June 1, 2018 SEC no-action letter** permits a TA to temporarily delay disbursement when
-   financial exploitation of a "Specified Adult" (an elder or vulnerable-adult investor) is
-   suspected — an exception to, not a repeal of, the 7-day rule.
-   [SEC No-Action Letter, ICI, June 1 2018](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm) ·
-   [SEC Committee of Annuity Insurers §22(e) materials](https://www.sec.gov/investment/cai-22e-041124)
-8. TA generates the redemption confirmation and, at year-end, the **1099-B** cost-basis report
-   (§6).
+**Trigger**: investor requests a sale/withdrawal.
 
-### 8.3 A dividend/capital-gain distribution cycle
+1. Investor → Portal/Distributor: requests redemption.
+2. Portal/Distributor → TA: order arrives via **Fund/SERV 001 Order** (sell side) or
+   **setr.004.001 Redemption Order**.
+3. TA: validates the order, waits for the day's NAV (same Rule 22c-1 dependency as §8.1).
+4. TA: prices the redemption, debits the shareholder's share balance (`08`, §1), confirms via
+   **Fund/SERV** or **setr.006.001 Redemption Order Confirmation**.
+5. TA → Fund Accounting: reports the day's aggregate net outflow (§2.3) — may trigger a security
+   sale if the fund's cash buffer is insufficient (Rule 22e-4 liquidity management).
+6. Custodian → TA/Payment Agent: funds the disbursement.
+7. TA/Payment Agent → Investor's bank: pays proceeds via **ACH credit** or **Fedwire** (§3.1/§3.2).
+   **Hard deadline: within 7 calendar days of tender (ICA §22(e))** — the only exception is a
+   temporary hold under a 2018 SEC no-action letter when elder/vulnerable-adult financial
+   exploitation is suspected.
+   [SEC No-Action Letter, ICI, June 1 2018](https://www.sec.gov/divisions/investment/noaction/2018/investment-company-institute-060118-22e.htm)
+8. TA → Shareholder Reporting: generates the redemption confirmation now, and the **1099-B**
+   cost-basis report at year-end (§6).
 
-1. Fund accounting/the board declares a dividend rate (record date, ex-date, payable date), per
-   `07`, §2.
-2. Fund accounting transmits the dividend rate to the TA — same unstandardized proprietary feed as
-   §2.2.
-3. TA calculates each shareholder's dividend amount based on shares held as of the record date, and
-   applies each account's cash-vs-reinvest election (a non-financial maintenance attribute, `08`,
-   §3).
-4. **Reinvest accounts**: TA creates a new purchase transaction (shares issued from the
-   distribution) — no cash leaves the fund; this posts as a credit to both the activity file and
-   balance file (`08`, §1).
-5. **Cash accounts**: TA instructs disbursement via **ACH (PPD)** or check, per §3.1.
-6. TA reports the total cash-paid vs. reinvested split back to fund accounting so the fund's NAV
-   and cash position reflect the distribution correctly.
-7. At year-end, TA generates **1099-DIV** for all shareholders who received ≥$10 in distributions
-   (§6), correctly splitting ordinary dividends (Box 1a) from capital gain distributions (Box 2a —
-   always long-term regardless of the fund's actual holding period, per `08`, §2.2).
+### 8.3 Scenario: Dividend distribution (cash)
+
+**Trigger**: fund declares a dividend; a shareholder's account is elected for cash payout.
+
+1. Fund Board/Accounting → TA: declares the dividend rate and record/ex/payable dates (`07`, §2),
+   transmitted via the same unstandardized feed as §2.2.
+2. TA: calculates each shareholder's dividend amount (shares held as of record date × rate) and
+   checks the account's distribution election — **this account is set to Cash** (a non-financial
+   maintenance attribute, `08` §3).
+3. TA → Payment Agent/Bank: instructs disbursement via **ACH (PPD, §3.1)** or check.
+4. Payment Agent → Shareholder's bank: pays the cash amount.
+5. TA → Fund Accounting: reports the total cash paid out so the fund's NAV/cash position reflects
+   the distribution correctly.
+6. TA → Shareholder Reporting: posts the payment to the activity file/balance file and the
+   shareholder's account statement (`08`, §1).
+7. TA → IRS Reporting (year-end): includes the amount on **Form 1099-DIV, Box 1a** (Total Ordinary
+   Dividends) for any shareholder receiving ≥$10 across the year (`08`, §2.2).
+
+### 8.4 Scenario: Dividend reinvestment
+
+**Trigger**: same dividend declaration as §8.3, but the shareholder's account is elected to
+reinvest.
+
+1. Fund Board/Accounting → TA: same dividend rate/date declaration as §8.3, step 1.
+2. TA: calculates the shareholder's dividend amount; the account's election is **Reinvest**.
+3. TA: uses the dividend amount to buy new shares at the current NAV — **no cash leaves the
+   fund**. This posts as a credit to both the activity file and the balance file (`08`, §1), and
+   creates a **new cost-basis lot** for the newly issued shares.
+4. TA → Fund Accounting: reports the total dividends reinvested (shares issued, no net cash
+   impact on the fund).
+5. TA → Shareholder Reporting: updates the account's share balance and statement to reflect the
+   new shares.
+6. TA → IRS Reporting (year-end): still reports the reinvested amount on **Form 1099-DIV, Box
+   1a** — **reinvesting doesn't make a dividend non-taxable**; the shareholder owes tax on it the
+   same as a cash payout, even though no cash reached their bank account.
+
+### 8.5 Scenario: Capital gain distribution (cash)
+
+**Trigger**: fund declares a capital gain distribution; account elected for cash.
+
+Mechanically identical to §8.3 (dividend distribution, cash), with one tax difference at the last
+step:
+
+1–6. Same steps as §8.3, steps 1–6 (substitute "capital gain distribution" for "dividend").
+7. TA → IRS Reporting (year-end): includes the amount on **Form 1099-DIV, Box 2a** (Total Capital
+   Gain Distributions) — **always reported as long-term, regardless of the fund's actual holding
+   period** for the underlying securities sold (`08`, §2.2). Short-term gains realized by the fund
+   instead flow into Box 1a as ordinary dividends.
+
+### 8.6 Scenario: Capital gain reinvestment
+
+**Trigger**: same capital gain declaration as §8.5, but the account is elected to reinvest.
+
+Mechanically identical to §8.4 (dividend reinvestment) — new shares purchased at current NAV, new
+cost-basis lot created, no cash leaves the fund — except the year-end tax reporting step uses
+**Form 1099-DIV, Box 2a** instead of Box 1a.
+
+### 8.7 Scenario: Tax withholding on a distribution
+
+**Trigger**: a distribution (dividend or capital gain, cash or reinvest) is payable to a
+shareholder whose tax certification requires withholding — either a **missing/invalid Form W-9**
+(triggers backup withholding) or a **non-US shareholder's Form W-8BEN** (triggers NRA
+withholding). This is the scenario that runs through accounting, payments, shareholder reporting,
+*and* IRS reporting in one pass:
+
+1. TA: at distribution-calculation time, checks the shareholder's tax certification status on file
+   (W-9/W-8BEN — a non-financial maintenance attribute, `08` §3).
+2. TA: determines the applicable withholding —
+   - **Backup withholding**: **24%** of the gross distribution, required when a US person's TIN is
+     missing/invalid, the IRS has flagged the TIN as incorrect, or there's a certification
+     failure (governed by IRC §3406).
+   - **NRA (nonresident alien) withholding**: **30%** of the gross distribution by default under
+     Chapter 3, or a lower **treaty-reduced rate** if the shareholder's W-8BEN claims one.
+3. TA: computes the **gross distribution**, the **withheld amount**, and the **net amount payable**
+   to the shareholder.
+4. TA → Fund Accounting: reports all three figures — gross distribution, amount withheld, and net
+   payable — so the fund's accounting reflects the full distribution obligation, with the withheld
+   portion earmarked for the IRS rather than the shareholder.
+5. TA/Payment Agent → Shareholder's bank: pays only the **net (after-withholding) amount** via ACH
+   or check.
+6. TA/Payment Agent → IRS: remits the **withheld amount** separately, via the **Electronic Federal
+   Tax Payment System (EFTPS)** — this isn't a per-shareholder payment, it's a periodic deposit
+   covering all withholding collected across shareholders.
+7. TA → Shareholder Reporting: reflects the **gross** distribution and the **withheld** amount
+   (not just the net payment) on the shareholder's activity file and account statement — the
+   shareholder needs to see both figures to reconcile their own tax return.
+8. TA → IRS Reporting (year-end):
+   - **Backup withholding** (US persons): reported on **Form 1099-DIV** — gross distribution in
+     the income box (1a or 2a), withheld amount in the federal income tax withheld box. The payer
+     also separately reports and remits total backup withholding via **Form 945**.
+   - **NRA withholding** (non-US persons): reported on **Form 1042-S**, not 1099-DIV — gross
+     income and withheld tax, filed instead of/in addition to the standard 1099 series since the
+     recipient isn't a US taxpayer for 1099 purposes.
+   - Either way, the shareholder uses the withheld-amount figure to claim a credit for tax already
+     paid on their own return — the withholding isn't a separate loss, it's a prepayment.
+
+[Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) (general
+mechanics overview, cross-checked against IRS guidance below) ·
+[IRS — Withholding and Reporting Obligations](https://www.irs.gov/individuals/international-taxpayers/withholding-and-reporting-obligations) ·
+[IRS Publication 515 — Withholding of Tax on Nonresident Aliens and Foreign Entities](https://www.irs.gov/publications/p515)
 
 ---
 
@@ -481,3 +571,4 @@ longer and more load-bearing than in prior docs — **do not fill these gaps wit
 - [SEC — Customer Identification Programs for Mutual Funds](https://sec.gov/rules/2003/04/customer-identification-programs-mutual-funds) · [SEC AML Source Tool for Mutual Funds](https://www.sec.gov/about/divisions-offices/division-examinations/amlmfsourcetool)
 - [NAUPA Standard Electronic File Format](https://unclaimed.org/wp-content/uploads/NAUPAStandardElectronicFileFormat-11.20.19.pdf) · [NAUPA III File Format Draft](https://unclaimed.org/wp-content/uploads/NAUPA-III-File-Format-Review-Draft-1.4.pdf)
 - [IRS Form 1099-B Instructions](https://www.irs.gov/instructions/i1099b) · [IRS Forms 1099-R and 5498 Instructions](https://www.irs.gov/instructions/i1099r) · [IRS 1099-DIV FAQ](https://www.irs.gov/faqs/interest-dividends-other-types-of-income/1099-div-dividend-income/1099-div-dividend-income)
+- [Wikipedia — Backup Withholding](https://en.wikipedia.org/wiki/Backup_withholding) · [IRS — Withholding and Reporting Obligations](https://www.irs.gov/individuals/international-taxpayers/withholding-and-reporting-obligations) · [IRS Publication 515 — Withholding of Tax on Nonresident Aliens and Foreign Entities](https://www.irs.gov/publications/p515)
