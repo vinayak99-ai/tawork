@@ -153,6 +153,36 @@ market fund and a treasury-cash-management client:
 The fund-accounting-to-TA NAV feed itself remains **proprietary/vendor-specific** — no named
 industry-standard format.
 
+**Where expenses fit into this, given the NAV has to stay at $1.00**: expenses are deducted from
+**income before it's declared**, never from principal/NAV — the same daily-accrual mechanic that
+keeps the NAV stable is what absorbs expenses without ever touching the share price.
+
+- Fund Accounting computes **gross investment income** daily (interest/income earned on the
+  portfolio), then accrues every expense — management/advisory fee, 12b-1 fee, TA fee, custodian
+  fee, administration fee, audit/legal, board fees — daily as a fraction of its annual rate applied
+  against net assets, the same way income itself accrues (§7.4's "how tax is calculated" walkthrough
+  covers this daily-accrual mechanic from the income side).
+- **Net investment income = gross income − accrued daily expenses**, also net of any temporary
+  **fee waiver/expense cap** — routine for money market funds, since sponsors commonly waive part
+  of the advisory or 12b-1 fee specifically so total expenses don't exceed that day's gross income,
+  keeping the fund's yield from going negative or near-zero in low-rate environments.
+- That **net-of-expense** figure is what becomes the daily accrual rate/share shareholders actually
+  receive (§7.4 step 1) — gross income never reaches the shareholder level.
+- Because expenses are stripped out **before** the daily accrual feeds the amortized-cost/penny-
+  rounding NAV calculation, expenses show up entirely as a **lower yield**, never as a lower NAV —
+  structurally the same as opex reducing net income before EPS, without touching share count or par
+  value.
+- Actual **cash payment** of those accrued expense liabilities (wiring the advisory fee to the
+  adviser, 12b-1 to the distributor, TA/custodian fees to those parties, etc.) happens on a slower,
+  typically monthly cadence — decoupled from the daily accrual, which is an accounting entry, not a
+  cash movement.
+
+[ICI — Pricing of U.S. Money Market Funds](https://www.ici.org/system/files/attachments/ppr_11_mmf_pricing.pdf)
+(daily dividend declared equal to net accrued income, preventing a buildup that would disturb the
+stable NAV) · SEC fund-prospectus fee-waiver disclosures (e.g. [Daily Income Fund, Form 485BPOS](https://www.sec.gov/Archives/edgar/data/0000918267/000119312514281669/d745555d485bpos.htm))
+describing advisory/12b-1 fee waivers structured so total expenses don't exceed a money market
+fund's gross income on a given day.
+
 ---
 
 ## 5. TA → payment / custodian — cash movement
@@ -814,9 +844,15 @@ system of record, confirmed straight back to the client's portal.
   publication or TSB-M numbers were not individually pulled and cited; treat the CT/NY portion of
   that rule as a well-corroborated pattern, not a primary-source-pinned citation the way the CA
   figure is.
+- **The exact cadence of actual cash payment for accrued fund expenses (§4)** — described as
+  "typically monthly" by analogy to standard fund-accounting practice; not independently confirmed
+  against a primary source specific to money market funds, which could in principle settle expense
+  liabilities on a different cycle (e.g. quarterly for smaller line items, or continuously via a
+  cash sweep).
 
 ## Sources
 
+- [ICI — Pricing of U.S. Money Market Funds (2011)](https://www.ici.org/system/files/attachments/ppr_11_mmf_pricing.pdf) · [Daily Income Fund, SEC Form 485BPOS (fee waiver / expense-vs-gross-income mechanics)](https://www.sec.gov/Archives/edgar/data/0000918267/000119312514281669/d745555d485bpos.htm)
 - [31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) · [Cornell LII mirror](https://www.law.cornell.edu/cfr/text/31/1010.230)
 - [FinCEN — CDD Rule FAQs](https://www.fincen.gov/resources/statutes-and-regulations/cdd-rule-faqs)
 - [FinCEN Order — Exceptive Relief from Repeat Beneficial Ownership Verification, Feb 13 2026](https://www.fincen.gov/system/files/2026-02/FinCEN-Order-CCDExceptiveRelief.pdf)
