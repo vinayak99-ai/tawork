@@ -325,6 +325,55 @@ out to exactly **$0** (the same finding as the wash sale scenario, §7.9) — bu
 run that computation and report it at redemption time rather than assuming the answer in advance.
 Required-but-uninteresting, not skippable.
 
+**How the dividend's own tax figure actually gets calculated — the full process, step by step**
+(this expands step 1-6 above with the mechanics, since "how is tax calculated" doesn't have a
+one-line answer and is worth spelling out end to end):
+
+1. **Fund Accounting** computes daily net investment income and a **daily accrual rate/share** —
+   standard for any Rule 2a-7 fund; this daily-accrual mechanic is *how* the NAV stays at $1.00
+   (income moves through accrual, not through NAV) rather than a side detail.
+2. **TA** tracks, day by day, which accounts are entitled to that day's accrual (shares held on
+   the applicable date × that day's rate), using the same AM/PM pay-on-credit/pay-on-debit timing
+   already covered in §4.
+3. Daily accruals are aggregated — typically monthly for a money market fund — into one
+   **declared dividend** with record/ex/payable dates (§7.3 step 1 / §7.4 step 1).
+4. **Fund Accounting characterizes the total**: the large majority is ordinary income; it also
+   computes the **percentage of the total attributable to direct U.S. government obligations**,
+   because most states let a shareholder exclude that percentage from *state* taxable income
+   (federal tax applies to the full amount regardless). Three states — **California, Connecticut,
+   and New York** — apply an all-or-nothing quarterly asset test rather than a simple proportional
+   exclusion: the fund must hold **≥50% of its assets in U.S. government obligations at each
+   quarter-end** within the tax year for residents of those three states to get *any* exclusion at
+   all; fall below 50% at even one quarter-end and the exclusion for CA/CT/NY residents is **0%**,
+   not a partial amount. Every other state generally allows a straight proportional exclusion with
+   no minimum threshold. (Illustrative real-world figure: Vanguard Federal Money Market Fund
+   (VMFXX) reported 66.61% of its 2025 Box 1a dividend income as U.S.-government-obligation-derived
+   — a fund well above the CA/CT/NY threshold; a fund that dips below 50% at any quarter-end would
+   cost its CA/CT/NY shareholders the entire state exclusion, not just the shortfall.)
+5. This full **gross** amount is taxable income to the shareholder **in the year declared** —
+   cash-vs-reinvest makes no difference here, per §7.4 step 6 above.
+6. **TA applies the account's election** to the *net cash mechanics only* (this is where cost
+   basis and the election actually interact with each other, and it's worth stating precisely so
+   the two tracks — "tax on the dividend" vs. "cost basis of new shares" — don't get conflated):
+   if backup withholding applies (§7.7 Branch B), withholding is calculated on the **gross**
+   declared amount first, and only the **net** (post-withholding) amount is either paid out in
+   cash or converted into new shares at the payable-date NAV. A backup-withholding account that
+   reinvests therefore receives fewer new shares than the gross dividend would otherwise buy at
+   that NAV — the shares issued reflect net cash, not gross income.
+7. The **new cost-basis lot** created in step 6 (same lot referenced in the "two separate tax
+   calculations" note above) is a purely forward-looking record for *that lot's own eventual
+   redemption* — it plays no role in calculating tax on the dividend that created it.
+8. Annually, the gross declared-and-accrued total for the year rolls into either the corporate
+   1099-DIV exemption (§7.7 Branch A) or an actual 1099-DIV Box 1a figure (Branch B), accompanied
+   by a separate, non-1099 fund disclosure of the government-obligations percentage from step 4,
+   which the shareholder (or its state return) uses to apply — or, for a CA/CT/NY resident, to
+   determine eligibility for — the state-tax exclusion.
+
+**Net takeaway**: the dividend's tax treatment is computed once, at declaration, on the **gross**
+characterized amount, and is completely independent of both cost basis and the cash/reinvest
+election. Cost basis only becomes relevant for the *newly issued shares* from a reinvestment, and
+only when *that* lot is eventually redeemed — never for the dividend income itself.
+
 ### 7.5 Scenario: Capital gain distribution (cash)
 
 **Trigger**: fund declares a capital gain distribution — **worth flagging as unusual for this
@@ -758,6 +807,13 @@ system of record, confirmed straight back to the client's portal.
   from within the general regulatory limits, not a hard requirement; presented that way in §7.14,
   but worth double-checking against a primary FinCEN source if exact SAR-timing compliance matters
   for a real implementation.
+- **Connecticut and New York's exact statutory/administrative-guidance citations for the same
+  all-or-nothing 50%-of-assets-at-each-quarter-end government-obligations test described in §7.4**
+  — the rule's existence and its match to California's (independently confirmed via CA FTB
+  Publication 1001) were confirmed generally via search, but the specific CT DRS and NY DTF
+  publication or TSB-M numbers were not individually pulled and cited; treat the CT/NY portion of
+  that rule as a well-corroborated pattern, not a primary-source-pinned citation the way the CA
+  figure is.
 
 ## Sources
 
@@ -775,3 +831,4 @@ system of record, confirmed straight back to the client's portal.
 - [PipelineRoad — Blue Sky Laws glossary (NSMIA/covered securities background)](https://pipelineroad.com/glossary/blue-sky-laws) · [Alabama Securities Commission — Notice Filings for Mutual Funds](https://asc.alabama.gov/statute/notice-filings-for-mutual-funds/) · [17 CFR 270.24f-2, eCFR](https://www.ecfr.gov/current/title-17/chapter-II/part-270/section-270.24f-2) · [SEC Form 24F-2](https://www.sec.gov/files/form24f-2.pdf) · [DFIN — What is SEC Form 24F-2](https://www.dfinsolutions.com/knowledge-hub/thought-leadership/knowledge-resources/form-24f-2)
 - [26 U.S.C. §1091, Cornell LII](https://www.law.cornell.edu/uscode/text/26/1091) · [IRS Notice 2013-48 — Application of Wash Sale Rules to Money Market Fund Shares](https://www.irs.gov/pub/irs-drop/n-13-48.pdf) · [Federal Register — Method of Accounting for Gains and Losses on Shares in Certain Money Market Funds](https://www.federalregister.gov/documents/2014/07/28/2014-17689/method-of-accounting-for-gains-and-losses-on-shares-in-certain-money-market-funds-broker-returns) · [Tax Notes — IRS Issues Guidance on Wash Sale Rules for Money Market Funds](https://www.taxnotes.com/research/federal/irs-guidance/revenue-procedures/irs-issues-guidance-on-wash-sale-rules-for-money-market/dpnk)
 - [Jones Day — Unclaimed Property Auditors Target B2B Property](https://www.jonesday.com/en/insights/2019/02/illinois-unclaimed-property-auditors-target) · [Baker Tilly — Unraveling the Business-to-Business Exemption](https://www.bakertilly.com/insights/unclaimed-property-unraveling-the-business-to-business-exemption) · [UPCR — ULC approves RUUPA](https://www.upcr-llc.com/ulc-approves-the-revised-uniform-unclaimed-property-act-ruupa/) · [LegalClarity — Escheatment Laws by State](https://legalclarity.org/escheatment-laws-by-state-what-businesses-need-to-know/)
+- [Vanguard — 2025 State and Federal Tax Guide (U.S. government obligations income by fund, incl. VMFXX's 66.61% figure)](https://investor.vanguard.com/investor-resources-education/taxes/tax-forms) · [California FTB — Publication 1001 (dividends from U.S. obligations, the CA 50%-per-quarter test)](https://www.ftb.ca.gov/forms/2023/2023-1001-publication.pdf)
