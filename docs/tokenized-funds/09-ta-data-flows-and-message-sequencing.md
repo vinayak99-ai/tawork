@@ -313,6 +313,18 @@ there's no external cash leg for a payment rail to carry in the first place.
    doesn't make the dividend non-taxable either** — the shareholder owes tax on it the same as a
    cash payout, even though no cash ever left the fund.
 
+**Two separate tax calculations here, worth not conflating**: (a) the tax **on the dividend
+itself** doesn't depend on cost basis at all — the declared dollar amount is fully taxable income
+in the year reinvested, full stop, exactly as step 6 above describes; (b) the **cost basis of the
+newly issued shares** (step 3's "new cost-basis lot") is a separate, forward-looking obligation
+that still has to be calculated and tracked, under **IRC §6045** (`05`, §3; `08`, §2.4) — mutual
+fund shares acquired after Jan 1, 2012 are "covered securities" with no carve-out for stable-NAV
+funds. For *this* fund specifically, that calculation is required but economically trivial: basis
+is $1.00/share, so whenever this lot is eventually redeemed the gain/loss will almost always come
+out to exactly **$0** (the same finding as the wash sale scenario, §7.9) — but the TA still has to
+run that computation and report it at redemption time rather than assuming the answer in advance.
+Required-but-uninteresting, not skippable.
+
 ### 7.5 Scenario: Capital gain distribution (cash)
 
 **Trigger**: fund declares a capital gain distribution — **worth flagging as unusual for this
