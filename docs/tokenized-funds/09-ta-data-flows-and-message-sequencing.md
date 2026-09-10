@@ -281,6 +281,34 @@ Same format as before: **what starts it**, then a simple `Entity → Entity: wha
 9. Custodian → TA: confirms the cash receipt via **MT940/camt.053** (§5.4).
 10. TA → Client: sends the trade confirmation statement (§6).
 
+**Same-day wire, not T+1/T+2 — the "good funds" mechanic, and why it's enforced through dividend
+accrual rather than order rejection**: for an institutional money market fund purchase, the client
+is expected to wire funds **the same business day as the order, before a fund-specific cutoff
+time** — this is confirmed operational practice at a real institutional MMF complex (First American
+Funds/US Bancorp Asset Management), whose published trade deadlines run **1:30 p.m.–3:45 p.m. CT
+depending on the specific fund** (e.g., a Treasury-only fund cuts off earliest; a retail-share-class
+prime fund latest). The rule isn't enforced by rejecting a late wire outright — it's enforced
+through **dividend accrual timing**: *"Shares begin accruing dividends on the same business day
+that payment in federal funds is received by the fund"* — so a wire that lands after the cutoff (or
+the next day) simply doesn't start earning until the day the cash actually arrives. Because the
+entire premise of a corporate treasury sweep into a MMF is same-day-working cash, this makes
+same-day wiring close to mandatory in practice even though it's technically an accrual penalty
+rather than a hard rejection rule. Redemptions work the same way in reverse: proceeds are wired out
+**the same business day** (by Fedwire close), and correspondingly the account **does not earn a
+dividend on the day the redemption is accepted** — consistent with §7.2's AM/PM accrual mechanics
+(`08`, §2.3).
+
+**Contrast with broker-dealer-intermediated retail fund sales**: FINRA Rule 2341(m) gives a
+broker-dealer up to **2 business days** (reduced from 3 in a 2017 amendment) to transmit a
+customer's payment through to the fund — but that rule governs the broker's pass-through
+obligation in an intermediated sale, not a direct institutional wire, and doesn't apply to this
+doc's direct-at-fund model at all. The point of noting it: "next-day settlement" is a real pattern
+elsewhere in the industry, just not for the direct institutional MMF purchase modeled here.
+
+[First American Funds — Money Market Guide, April 2026 (institutional wire cutoff times, dividend
+accrual, redemption proceeds timing)](https://www.firstamericanfunds.com/content/dam/usbam/faf/fund-applications-and-forms1/First%20American%20Funds%20Money%20Market%20Guide.pdf)
+· [FINRA Rule 2341(m)](https://www.finra.org/rules-guidance/rulebooks/finra-rules/2341)
+
 ### 7.2 Scenario: Redemption order
 
 **Trigger**: corporate treasury client needs cash back from the fund.
@@ -859,6 +887,7 @@ system of record, confirmed straight back to the client's portal.
 ## Sources
 
 - [ICI — Pricing of U.S. Money Market Funds (2011)](https://www.ici.org/system/files/attachments/ppr_11_mmf_pricing.pdf) · [Daily Income Fund, SEC Form 485BPOS (fee waiver / expense-vs-gross-income mechanics)](https://www.sec.gov/Archives/edgar/data/0000918267/000119312514281669/d745555d485bpos.htm)
+- [First American Funds — Money Market Guide, April 2026](https://www.firstamericanfunds.com/content/dam/usbam/faf/fund-applications-and-forms1/First%20American%20Funds%20Money%20Market%20Guide.pdf) (institutional wire cutoff times by fund, dividend-accrual-on-receipt-of-funds rule, same-day redemption proceeds) · [FINRA Rule 2341(m) — Investment Company Securities](https://www.finra.org/rules-guidance/rulebooks/finra-rules/2341)
 - [31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) · [Cornell LII mirror](https://www.law.cornell.edu/cfr/text/31/1010.230)
 - [FinCEN — CDD Rule FAQs](https://www.fincen.gov/resources/statutes-and-regulations/cdd-rule-faqs)
 - [FinCEN Order — Exceptive Relief from Repeat Beneficial Ownership Verification, Feb 13 2026](https://www.fincen.gov/system/files/2026-02/FinCEN-Order-CCDExceptiveRelief.pdf)
