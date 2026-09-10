@@ -303,6 +303,53 @@ genuine named industry standard — confirmed directly from ICI's UMC guide, whi
   (This is distinct from MFPS II's **Security Database**, which holds prospectus/operational rules
   data — both were noted in §3.5 below without this level of operational detail.)
 
+### 2.7 Actual published diagrams of this data flow
+
+For anyone who wants a visual rather than the prose description above: **ICI's "Navigating
+Intermediary Relationships" (December 2022)** — publicly available, no DTCC login required — is a
+64-page report built specifically to explain fund/intermediary/TA data flows, and it includes real
+box-and-arrow diagrams (not just narrative) for most of what §1–§2 describe:
+
+- **Figure 4 (Fund/SERV)**: three-lane diagram — Intermediary ↔ Fund/SERV ↔ Fund — showing
+  **Orders and Exchanges** flowing intermediary→fund, **Confirmations** and **Trade Settlement**
+  flowing both directions.
+- **Figures 5–6 (ACATS-Fund/SERV)**: the broker-to-broker account-transfer flow — customer transfer
+  request → ACATS → re-registration request relayed through Fund/SERV to the fund → acknowledgment
+  back — matching `06`'s own §1.5 description of this same mechanic, drawn out visually.
+- **Figure 7 (Networking)**: a single diagram laying out all four Networking sub-services side by
+  side — **Original Networking** (account registration/maintenance, share transfers, share aging,
+  activity and position files), **Omni/SERV** (activity/position files, 529 plan aggregation),
+  **Standardized Data Reporting** (data request/response for Rule 22c-2 compliance), and
+  **Retirement Plan Reporting** (recordkeeper-to-broker/dealer) — each shown as its own bidirectional
+  lane between Intermediary and Fund (or Retirement Plan Sponsor for RPR).
+- **Figure 8**: a clean table of **the three Networking levels — 0, 3, 4** — independently
+  corroborating `06`'s own §2.2 finding (and its correction of the initially-assumed "1/2/3"
+  scheme) from a second primary source. Confirms Levels 1 and 2 were formally **retired in 2015**.
+- **Figures 9–10**: worked examples of **omnibus** (one TA-level account representing many
+  underlying investors/plan participants, reconciled via CDS III/Omni/SERV or SDR) vs.
+  **individual/Networked Level 3** accounts (TA's books show the broker-dealer's name FBO the
+  individual investor) — useful for seeing exactly what "the TA's books" contain in each model.
+
+**Directly relevant to `09`'s modeling choice**: page 39 of this report explicitly names and
+defines the **"direct-at-fund" account** — opened via "check and app" or "subscription way"
+business, i.e. an application and check (or, by extension, a portal) sent straight to the fund's
+transfer agent rather than through a broker-dealer — as a **Level 0 non-Networked account that is
+typically not processed through the NSCC at all**, with the fund/TA as the investor's sole point of
+contact. That's an independent, named confirmation of the exact account model `09`'s entire
+scenario set is built around, from a different primary source than the one `09` itself cites.
+
+**One new mechanism worth flagging for a later pass**: the report also names **Client Data Share
+(CDS) I, II, and III** — CDS I lets a fund complex transmit account info back to the broker-dealer
+of record for a direct-at-fund/Level 0 account (regulatory books-and-records purposes); CDS II lets
+a broker-dealer transmit not-fully-disclosed shareholder identity data to the fund for oversight
+purposes; CDS III is the mechanism Omni/SERV operationalizes for omnibus subaccount transparency.
+None of these are covered elsewhere in `06` yet — noted here as a gap rather than written up in
+full, since this pass focused on locating the diagrams rather than a full CDS deep dive.
+
+[ICI — Navigating Intermediary Relationships, December 2022](https://www.ici.org/system/files/2022-12/22-ppr-navigating-intermediary-relationships.pdf)
+— read in full (PDF text extraction failed via standard fetch; read directly via Claude's native
+PDF page-rendering instead, per the pattern noted in `09`'s own gaps).
+
 ### 2.4 Relationship to Fund/SERV
 
 Explicitly complementary, not overlapping: **Fund/SERV = trade order entry/confirmation/
@@ -532,6 +579,11 @@ negative.
   summaries given.
 - DTC tokenization pilot mechanics — sourced from consistent law-firm summaries of the primary SEC
   no-action letter, not the letter itself.
+- **Client Data Share (CDS) I, II, and III** (§2.7) — named and their general purpose described in
+  the ICI intermediary-relationships report, but not independently deep-dived here: exact data
+  fields exchanged, technical delivery mechanism, and whether CDS III is fully synonymous with
+  Networking Omni/SERV or a distinct-but-related service were not confirmed beyond that report's
+  one-paragraph description.
 
 ## Sources
 
@@ -543,5 +595,6 @@ negative.
 - [AIP Fact Sheet, © 2025](https://www.dtcc.com/-/media/Files/Downloads/Investment-Product-Services/Wealth-Management-Services/AIP/AIP-Fact-Sheet.pdf)
 - [DTCC Mutual Fund Services 2026 Fee Schedule](https://www.dtcc.com/wealth-management-services/mutual-fund-services/-/media/Files/Downloads/Investment-Product-Services/user-documentation/mutual-fund-services.pdf)
 - [Federal Register — NSCC proposed rule change, May 14 2026](https://www.federalregister.gov/documents/2026/05/14/2026-09589/)
+- [ICI — Navigating Intermediary Relationships, December 2022](https://www.ici.org/system/files/2022-12/22-ppr-navigating-intermediary-relationships.pdf) — read in full; source of §2.7's diagrams (Figures 1, 4–10) and the CDS I/II/III and "direct-at-fund"/Level 0/"check and app" terminology
 - WisdomTree 485APOS (SEC EDGAR) — "WisdomTree 500 Digital ETF" digital transfer agent / DTCC Shares vs. Tokenized Shares language
 - [ICI — Mutual Fund Operations Planning Guide for an Unexpected Market Close, March 2019](https://www.ici.org/system/files/attachments/pdf/19_ppr_marketclose.pdf) — read in full; the operational cross-industry document behind §2.4–2.6

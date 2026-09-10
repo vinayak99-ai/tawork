@@ -9,6 +9,12 @@ transfer agent**. This is a **direct-at-fund** distribution model. Companion to 
 some funds actually operate. Franklin Templeton's OnChain Fund (`01`, §5) sells directly to
 investors, distributing only via its own Benji App (individuals) or **Institutional Web Portal**
 (institutions) — the same direct-at-fund shape modeled here, just without the blockchain layer.
+**Independently corroborated by name**: ICI's "Navigating Intermediary Relationships" report
+(`06`, §2.7) explicitly defines the **"direct-at-fund" account** — opened via application-and-check
+or portal straight to the transfer agent, a **Networking Level 0 non-Networked account typically
+not processed through the NSCC at all**, with the fund/TA as the investor's sole point of
+contact — confirming this doc's entire account model against a different primary source than the
+one that originally shaped it.
 
 ---
 
