@@ -244,8 +244,39 @@ treasury account specifically.
 
 ### 5.4 Custodian cash confirmation
 
-The custodian confirms cash movements via end-of-day **MT940/camt.053** (final booked balances) or
-intraday **MT942/camt.052** statements.
+**One clarification worth stating up front**: in this direct-at-fund model, the custodian bank
+account *is* the fund's cash account — "has the fund received the money" and "has the custodian
+received the money" describe the same event, not two separate confirmations to reconcile against
+each other.
+
+The custodian confirms cash movements to the TA/fund accounting via three tiers of SWIFT/ISO 20022
+messaging, from most to least immediate:
+
+1. **Real-time, per-transaction**: **MT910 (Confirmation of Credit)** — or its ISO 20022
+   replacement, **camt.054 (BankToCustomerDebitCreditNotification)** — sent by the custodian the
+   moment a specific credit posts to the account, not on any batch/periodic schedule. This is the
+   mechanism that actually answers "has *this specific order's* cash arrived" — a bank can be
+   subscribed to receive one of these on every credit posting. camt.054 is confirmed as the direct
+   ISO 20022 successor to both MT900 (debit) and MT910 (credit); its use is bilaterally agreed
+   rather than mandatory, so a given custodian relationship may still run on the legacy MT910 or on
+   camt.054 depending on what's been set up.
+2. **Intraday snapshot**: **MT942/camt.052** — a periodic summary of everything posted so far that
+   day, useful for a mid-day reconciliation pass rather than confirming any one specific credit.
+3. **End-of-day, final**: **MT940/camt.053** — the authoritative, fully reconciled statement of the
+   day's activity, used to close the books.
+
+**How a specific wire gets matched to a specific pending order** — the TA holds a queue of orders
+awaiting funding (expected amount, expected value date, client account); an incoming MT910/camt.054
+notification is matched against that queue primarily by **amount + expected value date + the
+sending account/reference information** carried in the payment message. A wire that doesn't match
+anything in the queue (wrong amount, no corresponding pending order) goes to a manual
+reconciliation/exception queue rather than triggering automatic share issuance. **This matching
+logic is described from general cash-reconciliation practice, not a specific named source** —
+unlike the MT910/camt.054 mechanism above, which is independently confirmed.
+
+[SWIFT/Paiementor — MT910 Confirmation of Credit](https://www.paiementor.com/swift-mt910-confirmation-of-credit-detailed-analysis/)
+· [Bank of America — camt.054 Reference Guide](https://images.em.bankofamerica.com/GTS/ISO_20022/ReferenceGuideCreditandDebitNotification(CAMT.054).pdf)
+(camt.054 as the ISO 20022 successor to MT900/MT910, real-time per-posting notification)
 
 ---
 
@@ -278,7 +309,9 @@ Same format as before: **what starts it**, then a simple `Entity → Entity: wha
 7. TA → Fund Accounting: reports the net inflow so incoming cash gets invested appropriately.
 8. TA/Payment System → Client's bank: receives the cash via **Fedwire** (primary, §5.1) or ACH
    (secondary, §5.3).
-9. Custodian → TA: confirms the cash receipt via **MT940/camt.053** (§5.4).
+9. Custodian → TA: confirms the specific cash receipt in near-real-time via **MT910/camt.054**,
+   matched against this order in the funding queue by amount/date/account, with **MT942/camt.052**
+   and **MT940/camt.053** as the intraday and end-of-day backstops (§5.4).
 10. TA → Client: sends the trade confirmation statement (§6).
 
 **Same-day wire, not T+1/T+2 — the "good funds" mechanic, and why it's enforced through dividend
@@ -919,6 +952,7 @@ system of record, confirmed straight back to the client's portal.
 - [ICI — Pricing of U.S. Money Market Funds (2011)](https://www.ici.org/system/files/attachments/ppr_11_mmf_pricing.pdf) · [Daily Income Fund, SEC Form 485BPOS (fee waiver / expense-vs-gross-income mechanics)](https://www.sec.gov/Archives/edgar/data/0000918267/000119312514281669/d745555d485bpos.htm)
 - [First American Funds — Money Market Guide, April 2026](https://www.firstamericanfunds.com/content/dam/usbam/faf/fund-applications-and-forms1/First%20American%20Funds%20Money%20Market%20Guide.pdf) (institutional wire cutoff times by fund, dividend-accrual-on-receipt-of-funds rule, same-day redemption proceeds) · [FINRA Rule 2341(m) — Investment Company Securities](https://www.finra.org/rules-guidance/rulebooks/finra-rules/2341)
 - [Wells Fargo Asset Management / Allspring — Money Market Fund Dividend Accrual Policy](https://www.wellsfargoassetmanagement.com/resources/money-market-fund-dividend-accrual-policy.html)
+- [SWIFT/Paiementor — MT910 Confirmation of Credit](https://www.paiementor.com/swift-mt910-confirmation-of-credit-detailed-analysis/) · [Bank of America — camt.054 Reference Guide (ISO 20022 successor to MT900/MT910)](<https://images.em.bankofamerica.com/GTS/ISO_20022/ReferenceGuideCreditandDebitNotification(CAMT.054).pdf>)
 - [31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) · [Cornell LII mirror](https://www.law.cornell.edu/cfr/text/31/1010.230)
 - [FinCEN — CDD Rule FAQs](https://www.fincen.gov/resources/statutes-and-regulations/cdd-rule-faqs)
 - [FinCEN Order — Exceptive Relief from Repeat Beneficial Ownership Verification, Feb 13 2026](https://www.fincen.gov/system/files/2026-02/FinCEN-Order-CCDExceptiveRelief.pdf)
