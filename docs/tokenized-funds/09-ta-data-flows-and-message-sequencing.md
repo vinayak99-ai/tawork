@@ -330,6 +330,36 @@ accrual, redemption proceeds timing)](https://www.firstamericanfunds.com/content
    similar exempt-recipient pattern to 1099-DIV for corporations, though this doc's primary
    research focused on the dividend/distribution side).
 
+**What happens to yield already earned on a short holding period (e.g. redeeming after 15 days) —
+does a short-stay client lose accrued income, or get "extra units"?** Neither — the accrued dividend
+is never forfeited, but on a **full** redemption it comes back as **cash**, not extra shares:
+
+- Yield in a stable-NAV fund never shows up as NAV appreciation — only as the **daily accrual**
+  described in §7.4's tax walkthrough and §4's expense mechanics. Every day held — day 1 through
+  day 15, weekends/holidays included — earns that day's accrual; there's no minimum holding period
+  to start earning.
+- Standard **AM/PM accrual convention** (already documented in `08`, §2.3, independently confirmed
+  here via a published money-market-fund dividend accrual policy): the account **accrues on its
+  purchase date but does not accrue on its redemption date** — so redeeming on day 15 stops the
+  clock on day 15, not day 14 or day 16.
+- The **accumulated 15 days of declared-but-unpaid dividend is still owed and still paid** — funds
+  typically declare daily but **pay** on a slower cycle (monthly is standard, per §7.1/§7.3's own
+  citations), so a mid-cycle full redemption doesn't erase what's already accrued. Payment timing
+  varies by fund: some pay the accrued amount as cash **alongside the redemption proceeds** (steps
+  6–7 above); others hold it and pay it with the fund's **regular monthly distribution**, sent to
+  the (now-closed) account's payment instructions on file.
+- **Why cash, not new shares, on a full redemption**: reinvestment (§7.4) requires an open account
+  with a share balance to convert the dividend into — once every share is redeemed, there's nothing
+  left to reinvest into, so the accrued yield has to be paid out as cash. **A partial redemption is
+  different**: if some shares remain in the account through the next payable date with reinvestment
+  still elected, the dividend on those *remaining* shares is still converted into new shares exactly
+  as §7.4 describes — "extra units" only happens for shares that are still open, never for shares
+  that have already been redeemed.
+
+[Wells Fargo Asset Management / Allspring — Money Market Fund Dividend Accrual Policy](https://www.wellsfargoassetmanagement.com/resources/money-market-fund-dividend-accrual-policy.html)
+(daily accrual, monthly payment cycle, and the "accrue on purchase date, not on redemption date"
+convention, confirmed independently of `08`'s original source for the same finding)
+
 ### 7.3 Scenario: Dividend distribution (cash)
 
 **Trigger**: fund declares a dividend; the corporate account is elected for cash payout.
@@ -888,6 +918,7 @@ system of record, confirmed straight back to the client's portal.
 
 - [ICI — Pricing of U.S. Money Market Funds (2011)](https://www.ici.org/system/files/attachments/ppr_11_mmf_pricing.pdf) · [Daily Income Fund, SEC Form 485BPOS (fee waiver / expense-vs-gross-income mechanics)](https://www.sec.gov/Archives/edgar/data/0000918267/000119312514281669/d745555d485bpos.htm)
 - [First American Funds — Money Market Guide, April 2026](https://www.firstamericanfunds.com/content/dam/usbam/faf/fund-applications-and-forms1/First%20American%20Funds%20Money%20Market%20Guide.pdf) (institutional wire cutoff times by fund, dividend-accrual-on-receipt-of-funds rule, same-day redemption proceeds) · [FINRA Rule 2341(m) — Investment Company Securities](https://www.finra.org/rules-guidance/rulebooks/finra-rules/2341)
+- [Wells Fargo Asset Management / Allspring — Money Market Fund Dividend Accrual Policy](https://www.wellsfargoassetmanagement.com/resources/money-market-fund-dividend-accrual-policy.html)
 - [31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) · [Cornell LII mirror](https://www.law.cornell.edu/cfr/text/31/1010.230)
 - [FinCEN — CDD Rule FAQs](https://www.fincen.gov/resources/statutes-and-regulations/cdd-rule-faqs)
 - [FinCEN Order — Exceptive Relief from Repeat Beneficial Ownership Verification, Feb 13 2026](https://www.fincen.gov/system/files/2026-02/FinCEN-Order-CCDExceptiveRelief.pdf)
