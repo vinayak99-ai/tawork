@@ -156,6 +156,38 @@ market fund and a treasury-cash-management client:
   balances at the right time of day, with corresponding effects on settlement timing.
   [ICI — Intraday Processing for Floating NAV Money Market Funds Working Group](https://www.ici.org/ops_mmf_reform/intraday)
 
+**How one intraday cycle actually works, mechanically** — this is what an "intraday file" (in
+TA2000-style terminology, a same-day batch tied to a specific NAV strike, as distinct from the
+nightly roll-up) really is, worked through with a concrete illustration:
+
+1. **Orders accumulate in a window between two strike times.** Nothing is priced yet.
+2. **At the strike time, the window closes and NAV is calculated** as of that exact moment,
+   incorporating income accrued and portfolio trades executed since the last strike.
+3. **The TA prices every order in that window against the just-struck NAV and processes them as
+   one batch** — the "intraday file" — a closed, same-day-settling unit distinct from the next
+   window's batch.
+4. **Cash settles the same business day** using the good-funds wire mechanics already covered in
+   §7.1.
+5. **Each window's output feeds the next window's inputs**: a real worked example from ICI's
+   intraday-strike technical model — a $200 million redemption received by the TA at 10 a.m. is
+   processed at the **noon** NAV; the resulting drop in shares outstanding changes the **class
+   allocation ratio** used for the **3 p.m.** NAV calculation. The strikes are chained, not
+   independent snapshots.
+
+**The real accounting-policy question this raises — *when* a portfolio trade gets reflected**:
+**Rule 2a-4** sets the outer limit — a portfolio trade must be recognized in NAV **no later than
+the first calculation on the next business day** — but a fund has a genuine choice about
+recognizing it sooner. ICI's model shows this isn't cosmetic: it illustrated the *same* underlying
+$200 million security sale and redemption producing **$1.0016 vs. $1.0018 vs. $1.0014** for the
+same NAV strike, purely from choosing same-period vs. next-period trade recognition and whether
+capital-stock flows are estimated in advance or reconciled after the fact. This is a genuine
+policy choice each fund's accounting team makes, not a fixed mechanical rule beyond the Rule 2a-4
+outer boundary.
+
+[ICI — Floating NAV Intraday NAV Strike Considerations (Nov 2015)](https://www.ici.org/system/files/attachments/15_ops_floating_nav_intraday.pdf)
+(technical worked model; PDF text extraction failed via standard fetch, read directly via Claude's
+native PDF rendering)
+
 The fund-accounting-to-TA NAV feed itself remains **proprietary/vendor-specific** — no named
 industry-standard format.
 
@@ -952,6 +984,7 @@ system of record, confirmed straight back to the client's portal.
 - [ICI — Pricing of U.S. Money Market Funds (2011)](https://www.ici.org/system/files/attachments/ppr_11_mmf_pricing.pdf) · [Daily Income Fund, SEC Form 485BPOS (fee waiver / expense-vs-gross-income mechanics)](https://www.sec.gov/Archives/edgar/data/0000918267/000119312514281669/d745555d485bpos.htm)
 - [First American Funds — Money Market Guide, April 2026](https://www.firstamericanfunds.com/content/dam/usbam/faf/fund-applications-and-forms1/First%20American%20Funds%20Money%20Market%20Guide.pdf) (institutional wire cutoff times by fund, dividend-accrual-on-receipt-of-funds rule, same-day redemption proceeds) · [FINRA Rule 2341(m) — Investment Company Securities](https://www.finra.org/rules-guidance/rulebooks/finra-rules/2341)
 - [Wells Fargo Asset Management / Allspring — Money Market Fund Dividend Accrual Policy](https://www.wellsfargoassetmanagement.com/resources/money-market-fund-dividend-accrual-policy.html)
+- [ICI — Floating NAV Intraday NAV Strike Considerations (Nov 2015)](https://www.ici.org/system/files/attachments/15_ops_floating_nav_intraday.pdf)
 - [SWIFT/Paiementor — MT910 Confirmation of Credit](https://www.paiementor.com/swift-mt910-confirmation-of-credit-detailed-analysis/) · [Bank of America — camt.054 Reference Guide (ISO 20022 successor to MT900/MT910)](<https://images.em.bankofamerica.com/GTS/ISO_20022/ReferenceGuideCreditandDebitNotification(CAMT.054).pdf>)
 - [31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) · [Cornell LII mirror](https://www.law.cornell.edu/cfr/text/31/1010.230)
 - [FinCEN — CDD Rule FAQs](https://www.fincen.gov/resources/statutes-and-regulations/cdd-rule-faqs)
