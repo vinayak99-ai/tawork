@@ -162,6 +162,23 @@ oversight obligations get operationally executed.
 Named examples: same firm set as administration (State Street, BNY Mellon, JPMorgan) frequently
 perform both roles under one servicing agreement.
 
+**The underlying software, not just the servicing firm**: one widely-used real-time fund
+accounting/investment administration platform is **FIS InvestOne** — now rebranded **"FIS
+Investment Accounting Manager"** (both names in current use; FIS's own current materials and
+independent trackers both attach "formerly InvestOne" to the new name). Confirmed directly from
+FIS's own brochure: processes **$25+ trillion in assets across 24 countries**, manages **83,000+
+portfolios across ~1,000 fund groups**, **75% of clients run it as SaaS/hosted**. Named customers
+quoted in FIS's own materials include **Ultimus Fund Solutions** (a fund administrator, §4 above),
+**Jackson National Asset Management**, and **Principal Management** (mutual funds) — confirming
+this is genuinely in production use, not just marketing copy. Modules include Investment/Multiple
+Books of Record (IBOR/MBOR), an Exception Manager, an Expense Calculator, a SWIFT Adaptor, Corporate
+Actions Management, and Intraday Valuations explicitly built for multiple-daily-NAV use cases like
+money market funds (`09`, §4) — and, notably, **InvestOne bundles its own Transfer Agency module**,
+meaning the same vendor can in principle sit on both sides of the TA/fund-accounting relationship
+this doc set treats as separate functions.
+[FIS — InvestOne brochure](https://www.fisglobal.com/-/media/fisglobal/files/pdf/brochure/fis-investone-brochure.pdf)
+· [FIS — Investment Accounting Manager product page](https://www.fisglobal.com/products/fis-investment-accounting-manager)
+
 ---
 
 ## 6. Principal underwriter / distributor
@@ -489,6 +506,7 @@ shareholder-register and settlement-rail layers, not the rest of the fund's oper
 
 ## Sources
 
+- [FIS — InvestOne brochure](https://www.fisglobal.com/-/media/fisglobal/files/pdf/brochure/fis-investone-brochure.pdf) · [FIS — Investment Accounting Manager (formerly InvestOne) product page](https://www.fisglobal.com/products/fis-investment-accounting-manager)
 - [15 U.S.C. §80a-15 (ICA §15)](https://uscode.house.gov/view.xhtml?req=granuleid%3AUSC-prelim-title15-section80a-15&num=0&edition=prelim)
 - [15 U.S.C. §80a-2 (ICA §2(a)(29))](https://www.law.cornell.edu/uscode/text/15/80a-2)
 - [17 CFR §270.17f-2](https://www.law.cornell.edu/cfr/text/17/270.17f-2) · [17 CFR §270.17f-4](https://www.law.cornell.edu/cfr/text/17/270.17f-4)
