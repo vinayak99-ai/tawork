@@ -344,6 +344,23 @@ Same format as before: **what starts it**, then a simple `Entity → Entity: wha
 9. Custodian → TA: confirms the specific cash receipt in near-real-time via **MT910/camt.054**,
    matched against this order in the funding queue by amount/date/account, with **MT942/camt.052**
    and **MT940/camt.053** as the intraday and end-of-day backstops (§5.4).
+
+**Order submission and wire initiation are concurrent, not sequential-with-a-confirmation-gate.**
+A client does not wait for the TA's confirmation (step 6) before wiring — doing so would routinely
+blow the same-day cutoff (§4/§5). The confirmed real-world pattern (First American Funds'
+institutional guide, `09` §7.1's own earlier sourcing): the client places the order and initiates
+the wire **in the same session**, both before the fund's specific cutoff — the order submission is
+what authorizes/triggers the cash movement, not something the client waits on a response to.
+
+**One genuinely open question, worth flagging rather than glossing over**: whether share issuance
+(step 5) is *gated* on actual cash receipt being confirmed (a strict "good funds" model — shares
+only become final once the MT910/camt.054 in step 9 lands) or happens *provisionally* upon
+order + NAV alone, on the trusted expectation that an institutional counterparty's same-day wire
+will in fact arrive, with step 9 serving as after-the-fact reconciliation rather than a precondition
+for step 5. The step ordering above (confirmation at step 6, cash confirmation at step 9) reads
+more like the second model, but this hasn't been independently confirmed either way against a
+primary source — flagged here rather than asserted with more confidence than the sourcing
+supports.
 10. TA → Client: sends the trade confirmation statement (§6).
 
 **Same-day wire, not T+1/T+2 — the "good funds" mechanic, and why it's enforced through dividend
@@ -921,6 +938,10 @@ system of record, confirmed straight back to the client's portal.
 
 ## 8. Flagged gaps / not independently verified
 
+- **Whether §7.1's share issuance (step 5) is gated on confirmed cash receipt ("good funds") or
+  happens provisionally on order + NAV alone**, with the custodian's cash confirmation (step 9)
+  serving only as after-the-fact reconciliation — not independently confirmed either way against a
+  primary source; see the note under §7.1 step 9 for the reasoning behind reading it as the latter.
 - Whether 1099-B for redemption proceeds follows the exact same corporate-exemption pattern as
   1099-DIV — the research for this pass focused on the dividend/distribution side; §7.2's note on
   this is a reasonable inference from the general "exempt recipient" concept in IRS reporting
