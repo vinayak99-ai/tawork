@@ -89,6 +89,36 @@ rail underlies Fund/SERV's "Fed funds at NSCC" language, but that inference isn'
 confirmed in a Fund/SERV-specific document — **flagged as inferred, not primary-confirmed for
 Fund/SERV itself.**
 
+**How the buyer's cash actually gets from a broker-dealer to a fund's custodian — and a real
+correction to how central NSCC's role is here.** Two facts worth stating precisely, since they're
+easy to get wrong by analogy to NSCC's equities business:
+
+- **Individual buyer cash never reaches the custodian as an individually traceable wire.** The
+  investor pays their broker-dealer (cash balance, ACH, etc.) — that leg is entirely outside
+  Fund/SERV. Fund/SERV settles the **broker-dealer-to-fund** leg only, and it does so as **one net
+  payment per counterparty per day** across *all* of that broker's mutual fund activity, not
+  trade-by-trade. Which specific shareholder gets credited which shares comes entirely from
+  reconciling that one net wire against the accompanying **Settlement Detail** file (§1.2) — the
+  cash itself carries no per-buyer information.
+- **Fund/SERV is an explicitly "nonguaranteed" NSCC service** — confirmed directly, and worth
+  correcting any assumption drawn from NSCC's equities/CNS business: unlike equities clearing,
+  where NSCC is a true **central counterparty** that guarantees trade completion even against a
+  member default, **NSCC does not guarantee Fund/SERV trades**. It calculates and channels the net
+  settlement obligation but does not itself stand behind it the way it does for stock trades.
+  [Federal Register / SEC filing — NSCC nonguaranteed services, incl. Fund/SERV](https://www.sec.gov/files/rules/ic/2017/ic-32839.pdf)
+
+**Independent confirmation of the NSS mechanism itself** (this materially strengthens, though
+doesn't 100% eliminate, the "inferred" flag above): DTC/NSCC's end-of-day net money settlement
+runs through the Fed's **National Settlement Service** — one file transmission that debits/credits
+each participant's designated commercial **Settling Bank** account, settling in true Fed funds
+(final, same-day central-bank money), covering roughly **70 transfers a day across 1.3 million+
+transactions** at the combined DTC/NSCC level, with settlement reports explicitly described as
+running "after cross-endorsement with NSCC." This is the same general infrastructure Fund/SERV's
+"Fed funds at NSCC" language almost certainly rides on — but this source describes DTC/NSCC's
+money settlement broadly, not a Fund/SERV-specific document confirming Fund/SERV's cash uses this
+exact run, so the original inference-flag is downgraded, not fully removed.
+[DTCC — Understanding the DTCC Subsidiaries Settlement Process](https://www.dtcc.com/understanding-settlement/index.html)
+
 ### 1.4 Transaction types supported
 
 Purchases, redemptions, exchanges; **transfers/re-registrations** via ACATS-Fund/SERV (§1.5);
@@ -588,6 +618,7 @@ negative.
 ## Sources
 
 - [DTCC Fund/SERV Factsheet](https://www.dtcc.com/-/media/Files/Downloads/Investment-Product-Services/Wealth-Management-Services/Funds/14597-MF-FundServ-Factsheet.pdf)
+- [SEC — National Securities Clearing Corporation filing, 2017 (nonguaranteed services incl. Fund/SERV)](https://www.sec.gov/files/rules/ic/2017/ic-32839.pdf) · [DTCC — Understanding the DTCC Subsidiaries Settlement Process](https://www.dtcc.com/understanding-settlement/index.html) (National Settlement Service mechanics, Settling Banks, NSCC cross-endorsement)
 - [DTCC Networking Factsheet](https://www.dtcc.com/-/media/Files/Downloads/Investment-Product-Services/Wealth-Management-Services/Funds/WMS-Networking-Fact-Sheet.pdf)
 - [ACATS-Fund/SERV Factsheet](https://www.dtcc.com/-/media/Files/Downloads/Investment-Product-Services/Wealth-Management-Services/Funds/ACATS-FundSERV-Fact-Sheet.pdf)
 - [ACATS User Guide, Oct 17 2025, dtcclearning.com](https://www.dtcclearning.com/helpfiles/ec/acats/Content/Resources/Attachments/acats-user-help.pdf)
