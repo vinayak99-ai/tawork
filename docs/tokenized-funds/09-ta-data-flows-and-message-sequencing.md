@@ -61,12 +61,13 @@ one that originally shaped it.
   business" exemption that used to exempt/defer property owed between businesses, but whether
   that exemption (where it still exists in non-RUUPA states) has ever applied to mutual fund share
   holdings specifically isn't settled by anything found in this research pass.
-- **Sixteen scenarios in §7**: the ten client/fund-transaction scenarios (subscription, redemption,
+- **Seventeen scenarios in §7**: the ten client/fund-transaction scenarios (subscription, redemption,
   dividend distribution/reinvestment, capital gain distribution/reinvestment, tax certification,
-  Blue Sky/Rule 24f-2, wash sale, escheatment), a **non-financial maintenance scenario**
-  (beneficiary/address changes — real activity, but tracked separately from the balance-affecting
-  activity file), plus **five compliance-reporting scenarios that run at the level of the TA's or
-  fund's whole operation, not just this one client relationship**: the TA's own **Form TA-2**
+  Blue Sky/Rule 24f-2, wash sale, escheatment), **two non-financial account scenarios**
+  (beneficiary/address maintenance, and shares pledged as collateral — real activity, but tracked
+  separately from the balance-affecting activity file), plus **five compliance-reporting scenarios
+  that run at the level of the TA's or fund's whole operation, not just this one client
+  relationship**: the TA's own **Form TA-2**
   annual report, its **Rule 17Ad-13** internal control audit, **Rule 17Ad-11** aged record
   difference reporting, **SAR/OFAC** reporting, and the fund-level **Form N-CEN/N-MFP/N-CSR**
   filings built on TA-sourced data.
@@ -936,8 +937,76 @@ system of record, confirmed straight back to the client's portal.
 
 ---
 
+### 7.17 Scenario: Shares pledged as collateral
+
+**Trigger**: the corporate treasury client pledges its fund shares as collateral for a loan — the
+lender requires a perfected security interest in the shares before extending credit.
+
+**Legal basis, stated up front**: this runs on **UCC Article 8 "control"**, not anything
+mutual-fund-specific. Because shares are held directly on the TA's own books in this doc's
+direct-at-fund model, **the TA is the "securities intermediary" for Article 8 purposes** — the
+same role a broker-dealer plays for street-name shares. Perfection happens via a tri-party
+**Control Agreement**: shareholder (pledgor), lender (secured party), and the TA.
+
+1. Corporate Treasury Client + Lender → TA: the executed Control Agreement is delivered to the TA
+   (typically via the same portal/direct channel as any other instruction, §3).
+2. TA: validates the agreement and **posts a restriction/flag to the account record** — a
+   **non-financial** entry, no shares or cash move, the same category as §7.16's maintenance
+   updates (`08`, §1).
+3. **Phase 1 — pledge exists, account not frozen (the common structure)**: until the TA receives a
+   formal **Notice of Exclusive Control** from the lender, the shareholder **keeps normal rights**
+   — can still vote, receive dividends, and (depending on the specific agreement's terms) even
+   instruct the TA. This is a genuine *springing* lien design, not an immediate freeze — confirmed
+   directly from real control-agreement language: *"Until the Securities Intermediary receives a
+   Notice of Exclusive Control, the Pledgor is entitled to give instructions to the Securities
+   Intermediary regarding pledged shares, including voting, receiving dividends, and exercising
+   other rights."*
+4. **Registration does not change.** The shareholder remains the registered owner of record — the
+   TA is not asked to re-register shares into the lender's name, only to respect the lender's
+   control rights per the agreement on file.
+5. **Phase 2 — Notice of Exclusive Control received (typically triggered by a loan default)**: TA →
+   TA's own records: the TA **flips whose instructions it honors** — after this notice, entitlement
+   orders are accepted **from the secured party (lender), not the shareholder**, including an order
+   to redeem/liquidate the pledged shares to satisfy the debt. `05`'s general recordkeeping duty
+   (Rule 17Ad-6/17Ad-7) applies here exactly as in §7.16 — both the original restriction and the
+   exclusive-control trigger get logged and retained.
+6. TA → Shareholder Reporting: the restriction (and, if triggered, the exclusive-control status) is
+   reflected on the account, and correspondence may begin copying or redirecting to the lender
+   depending on the agreement's terms.
+7. **Release**: the lender sends a release instruction; TA removes the restriction flag; full
+   rights return to the shareholder — again a non-financial entry, no re-registration needed since
+   ownership never moved in the first place.
+
+**A real-world parallel worth naming, from a different jurisdiction**: India's mutual fund
+industry has a well-documented, directly analogous mechanic called **"lien marking"** at the
+registrar/transfer agent (RTA) level — the RTA adds a restriction preventing redemption of the
+specific pledged units until the loan is repaid, with unpledged units in the same account remaining
+freely redeemable. Useful as a concrete illustration of the same underlying idea, but **not the
+same legal framework as the US's UCC Article 8** — India's lien-marking structure appears (per the
+sources found) to apply an **immediate freeze** on the pledged units, rather than the two-phase
+springing-control structure that's standard in US Control Agreements; treat this as an illustrative
+parallel, not a description of US mechanics.
+
+**Flagged, not resolved**: whether dividends paid during Phase 1 continue to the shareholder by
+default or get swept to the lender depends entirely on how "financial assets" is defined in the
+specific Control Agreement — not independently confirmed which is more standard for a mutual fund
+pledge specifically.
+
+[Uniform Commercial Code Article 8, Cornell LII](https://www.law.cornell.edu/ucc/8) · [U.S. Treasury — Collateral Account Control Agreement (template)](https://home.treasury.gov/system/files/136/Coll-Acct-Control-Agreement.pdf) · [Federal Reserve Bank of New York — Control Agreement (CPFF template)](https://www.newyorkfed.org/medialibrary/media/markets/CPFF_Control_Agreement.pdf) · [Volt Money — Lien Marking on Mutual Funds](https://voltmoney.in/blog/lien-marking-mutual-funds) (India-specific illustrative parallel)
+
+---
+
 ## 8. Flagged gaps / not independently verified
 
+- **§7.17: whether dividends paid on pledged shares during the springing-lien "Phase 1" continue
+  to the shareholder by default, or get swept to the lender** — depends entirely on how "financial
+  assets" is defined in the specific Control Agreement; not independently confirmed which is more
+  standard for a mutual fund share pledge specifically, as opposed to control agreements generally.
+- **§7.17: whether US mutual fund TAs commonly use a springing (Notice-of-Exclusive-Control-
+  triggered) structure versus an immediate-freeze structure** — the springing structure is
+  confirmed from real control-agreement template language, but whether TAs/funds also commonly
+  offer or default to an immediate-freeze arrangement (closer to India's lien-marking model) wasn't
+  independently ruled out.
 - **Whether §7.1's share issuance (step 5) is gated on confirmed cash receipt ("good funds") or
   happens provisionally on order + NAV alone**, with the custodian's cash confirmation (step 9)
   serving only as after-the-fact reconciliation — not independently confirmed either way against a
@@ -1005,6 +1074,7 @@ system of record, confirmed straight back to the client's portal.
 - [ICI — Pricing of U.S. Money Market Funds (2011)](https://www.ici.org/system/files/attachments/ppr_11_mmf_pricing.pdf) · [Daily Income Fund, SEC Form 485BPOS (fee waiver / expense-vs-gross-income mechanics)](https://www.sec.gov/Archives/edgar/data/0000918267/000119312514281669/d745555d485bpos.htm)
 - [First American Funds — Money Market Guide, April 2026](https://www.firstamericanfunds.com/content/dam/usbam/faf/fund-applications-and-forms1/First%20American%20Funds%20Money%20Market%20Guide.pdf) (institutional wire cutoff times by fund, dividend-accrual-on-receipt-of-funds rule, same-day redemption proceeds) · [FINRA Rule 2341(m) — Investment Company Securities](https://www.finra.org/rules-guidance/rulebooks/finra-rules/2341)
 - [Wells Fargo Asset Management / Allspring — Money Market Fund Dividend Accrual Policy](https://www.wellsfargoassetmanagement.com/resources/money-market-fund-dividend-accrual-policy.html)
+- [Uniform Commercial Code Article 8, Cornell LII](https://www.law.cornell.edu/ucc/8) · [U.S. Treasury — Collateral Account Control Agreement (template)](https://home.treasury.gov/system/files/136/Coll-Acct-Control-Agreement.pdf) · [Federal Reserve Bank of New York — Control Agreement (CPFF template)](https://www.newyorkfed.org/medialibrary/media/markets/CPFF_Control_Agreement.pdf) · [Volt Money — Lien Marking on Mutual Funds](https://voltmoney.in/blog/lien-marking-mutual-funds) (India-specific illustrative parallel)
 - [ICI — Floating NAV Intraday NAV Strike Considerations (Nov 2015)](https://www.ici.org/system/files/attachments/15_ops_floating_nav_intraday.pdf)
 - [SWIFT/Paiementor — MT910 Confirmation of Credit](https://www.paiementor.com/swift-mt910-confirmation-of-credit-detailed-analysis/) · [Bank of America — camt.054 Reference Guide (ISO 20022 successor to MT900/MT910)](<https://images.em.bankofamerica.com/GTS/ISO_20022/ReferenceGuideCreditandDebitNotification(CAMT.054).pdf>)
 - [31 CFR 1010.230, eCFR](https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230) · [Cornell LII mirror](https://www.law.cornell.edu/cfr/text/31/1010.230)
