@@ -60,6 +60,25 @@ concretely:
 
 [Superstate — FundOS](https://superstate.com/fundos) · [Superstate newsroom — FundOS announcement](https://superstate.com/newsroom/fundos-operating-system-tokenizing-funds) · [The Defiant — Coinbase Asset Management taps Superstate FundOS](https://thedefiant.io/news/defi/coinbase-asset-management-taps-superstate-fundos) · [The Defiant — Invesco files GENIUS Act stablecoin-reserve fund on Superstate rails](https://thedefiant.io/converge/tradfi-and-fintech/invesco-files-for-tokenized-stablecoin-reserve-money-market-fund-built-on-superstate-rails)
 
+**Where the actual documentation lives — "FundOS" has no dedicated technical doc section.**
+Checked docs.superstate.com directly: "FundOS" is a marketing/brand name for pitching the platform
+to prospective asset-manager clients, not a heading in the technical documentation itself. The real
+docs are organized by audience: `/investors/tokenized-funds/` (subscribe, redeem, NAV/income/yield
+— investor-facing, not developer-facing); `/investors/api/` — genuine developer-grade reference
+material, not marketing (a **Transactions API**, `GET /v2/transactions`, API-key auth with a
+`TransactionViewer` role, 18+ filter parameters across 30+ transaction types, TypeScript examples,
+JSON response samples, HTTP error codes; and a **Balances API**); `/integration-partners/` (an
+**Onboarding API** for partners to submit KYC-verified user data, and a **Direct Issuance
+Program**).
+
+**A genuinely separate, previously-undocumented product line found in the process**:
+**`/issuers/opening-bell`** — "**Opening Bell**" lets **SEC-registered public companies** issue
+their *equity* shares directly on Solana/Ethereum, explicitly positioned as working *alongside* a
+company's existing transfer agent rather than replacing it. This is about public-company **stock**,
+not funds — a real expansion of Superstate's scope beyond this doc's fund-only focus, worth noting
+even though it's outside this doc's core subject.
+[Superstate docs — Opening Bell](https://docs.superstate.com/issuers/opening-bell) · [Superstate docs — Transactions API](https://docs.superstate.com/investors/api/transactions-api) · [Superstate docs — Tokenized Funds](https://docs.superstate.com/investors/tokenized-funds)
+
 ## 2. Regulatory regime
 
 - Current exemption: ICA **§3(c)(7)** (USTB) and Securities Act **§4(a)(2)/Reg D Rule 506(c)**
@@ -152,6 +171,7 @@ concretely:
 ## Sources
 
 - [Superstate — FundOS](https://superstate.com/fundos) · [Superstate newsroom — FundOS operating system announcement](https://superstate.com/newsroom/fundos-operating-system-tokenizing-funds)
+- [Superstate docs — Opening Bell](https://docs.superstate.com/issuers/opening-bell) · [Superstate docs — Transactions API](https://docs.superstate.com/investors/api/transactions-api) · [Superstate docs — Tokenized Funds](https://docs.superstate.com/investors/tokenized-funds)
 - [The Defiant — Coinbase Asset Management taps Superstate FundOS](https://thedefiant.io/news/defi/coinbase-asset-management-taps-superstate-fundos)
 - [The Defiant — Invesco files tokenized stablecoin-reserve money market fund built on Superstate rails](https://thedefiant.io/converge/tradfi-and-fintech/invesco-files-for-tokenized-stablecoin-reserve-money-market-fund-built-on-superstate-rails)
 - [American Banker — Invesco to manage Superstate's USTB](https://www.americanbanker.com/news/invesco-to-manage-superstates-tokenized-ustb-fund)
