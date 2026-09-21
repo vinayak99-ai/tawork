@@ -31,6 +31,35 @@ model — see §1 and the 2026 pivot below.
   - This reflects Superstate's stated strategic shift toward being a pure tokenization/
     infrastructure ("FundOS") provider rather than an asset manager.
 
+### 1.1 FundOS — Superstate's productized service offering (post-pivot)
+
+Confirmed directly from Superstate's own FundOS page: **FundOS is now the actual product being
+sold**, described as "the operating system for the next generation of funds" — a turnkey platform
+for bringing private funds, mutual funds, and ETFs on-chain, built on Superstate Services LLC's
+transfer-agent registration. Modules: **Shareholder Management** (full registry across book-entry
+and supported chains, real-time sub/redemption/transfer visibility), **Payment processing** (a
+client's existing rails, or FundOS-managed USD/USDC), **Compliance/access control** (the same
+smart-contract **Allowlist** mechanic from §4, exposed as a service), an **integration layer**
+connecting to a client's *existing* custodians/fund ops/service providers via portal/API without
+requiring replacement, **DeFi/blockchain integrations** (lending protocols and vaults across major
+chains), and **investor network access** — new FundOS clients can reach the institutional investor
+base already onboarded through USTB/USCC. **[PRIMARY — superstate.com/fundos]**
+
+**Named clients beyond Superstate's own two legacy funds** — this is where the pivot shows up
+concretely:
+- **Invesco**: beyond taking over USTB management (§1 above), Invesco separately **filed for a
+  second, distinct product** — a tokenized **stablecoin-reserve money market fund** under the
+  **GENIUS Act** framework, with shares recorded directly on public blockchains and Superstate
+  serving as **sub-transfer agent**. **[SECONDARY — The Defiant]**
+- **Bitwise**: took over USCC management (§1 above).
+- **Coinbase Asset Management**: a new client — launched the **Coinbase Stablecoin Yield Fund
+  (ticker CUSHY)**, a tokenized credit fund, with **Superstate FundOS issuing the on-chain shares**.
+  **[SECONDARY — The Defiant]**
+- Combined platform AUM cited as **$1 billion+** (updated from the ~$850M figure in §6, which was
+  sourced to mid-2025 filings) — **[SECONDARY — superstate.com/fundos]**.
+
+[Superstate — FundOS](https://superstate.com/fundos) · [Superstate newsroom — FundOS announcement](https://superstate.com/newsroom/fundos-operating-system-tokenizing-funds) · [The Defiant — Coinbase Asset Management taps Superstate FundOS](https://thedefiant.io/news/defi/coinbase-asset-management-taps-superstate-fundos) · [The Defiant — Invesco files GENIUS Act stablecoin-reserve fund on Superstate rails](https://thedefiant.io/converge/tradfi-and-fintech/invesco-files-for-tokenized-stablecoin-reserve-money-market-fund-built-on-superstate-rails)
+
 ## 2. Regulatory regime
 
 - Current exemption: ICA **§3(c)(7)** (USTB) and Securities Act **§4(a)(2)/Reg D Rule 506(c)**
@@ -104,6 +133,13 @@ model — see §1 and the 2026 pivot below.
 
 ## Flagged gaps
 
+- **The Coinbase Stablecoin Yield Fund (CUSHY, §1.1)** — only a headline-level summary was
+  available; launch date, AUM, fund structure/registration status, and Superstate's precise role
+  (transfer agent vs. broader infrastructure only) weren't confirmed beyond "FundOS issues the
+  on-chain shares."
+- **Invesco's GENIUS Act stablecoin-reserve fund (§1.1)** — filing exists per secondary reporting,
+  but the fund's name, registration status, and launch timeline weren't independently confirmed
+  against a primary SEC filing in this pass.
 - USTB's underlying-Treasury custodian and any sub-adviser role — unreliable secondary sourcing
   (Federated Hermes claim looks inconsistent with the Invesco takeover and should be treated
   skeptically).
@@ -115,6 +151,9 @@ model — see §1 and the 2026 pivot below.
 
 ## Sources
 
+- [Superstate — FundOS](https://superstate.com/fundos) · [Superstate newsroom — FundOS operating system announcement](https://superstate.com/newsroom/fundos-operating-system-tokenizing-funds)
+- [The Defiant — Coinbase Asset Management taps Superstate FundOS](https://thedefiant.io/news/defi/coinbase-asset-management-taps-superstate-fundos)
+- [The Defiant — Invesco files tokenized stablecoin-reserve money market fund built on Superstate rails](https://thedefiant.io/converge/tradfi-and-fintech/invesco-files-for-tokenized-stablecoin-reserve-money-market-fund-built-on-superstate-rails)
 - [American Banker — Invesco to manage Superstate's USTB](https://www.americanbanker.com/news/invesco-to-manage-superstates-tokenized-ustb-fund)
 - [SEC N-1A filing](https://www.sec.gov/Archives/edgar/data/1982577/000110465925042142/tm2513524d1_n1a.htm)
 - [Superstate SEC Crypto Task Force comment letter, Jun 17, 2025](https://www.sec.gov/files/ctf-superstate-letter-061725.pdf)
