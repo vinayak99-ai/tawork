@@ -66,9 +66,17 @@ using a private-fund exemption?**
   OUSG all rely on ICA §3(c)(7) plus Reg D 506(c) — sidestepping '40 Act registration entirely by
   restricting the investor base to Qualified Purchasers. This is architecturally simpler and faster
   to launch (no SEC fund registration process) but caps the addressable market to institutional /
-  high-net-worth investors and requires a **separately SEC-registered transfer agent** (under
-  Exchange Act §17A) to legitimize the on-chain share register, since there's no '40 Act
-  registration doing that work.
+  high-net-worth investors. **A registered transfer agent is not legally required for this
+  structure** — Exchange Act §17A(c)(1) only mandates TA registration for a "qualifying security"
+  (one registered under §12, i.e., exchange-listed/reporting-company securities), and a 3(c)(7)
+  fund's Reg D interests don't meet that definition; this is exactly why most traditional private
+  funds/hedge funds just use an unregistered fund administrator to track their investor register.
+  Every fund in this comparison **chose** to register one anyway — a deliberate, voluntary move
+  (confirmed directly from Superstate's own registration reporting) driven by blockchain-specific
+  trust needs (public, transferable tokens benefit from a regulated authoritative record-keeper in
+  a way an informal administrator arrangement doesn't provide) and proactive regulatory alignment
+  (SEC Crypto Task Force commentary has flagged transfer agents as central to how tokenized
+  securities should fit into existing law) — not a compliance mandate.
 
 - **Superstate's 2026 pivot is the most instructive data point for your specific question.**
   Superstate started as an asset manager that also built its own transfer-agent infrastructure
