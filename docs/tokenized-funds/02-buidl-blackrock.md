@@ -34,7 +34,7 @@ as such.
 | Investment manager | BlackRock Financial Management, Inc. |
 | **Transfer agent & tokenization platform** | **Securitize, LLC** (SEC-registered transfer agent; maintains the official share register linking wallet addresses to verified investor identity) |
 | Placement agent / broker-dealer, ATS | Securitize Markets, LLC |
-| Custodian (cash/Treasuries) & fund administrator | **BNY Mellon** |
+| Custodian (cash/Treasuries) & fund administrator | **BNY Mellon** — confirmed verbatim from the launch press release: *"Bank of New York Mellon will serve as the custodian of the Fund's assets and its administrator."* **Fund accounting specifically is not separately named** — per `07`, §5's established pattern, accounting is typically bundled inside the administrator role at firms like BNY Mellon rather than split to a separate vendor, so BNY Mellon is the reasonable inference, but "fund accountant" itself isn't a term BUIDL's own materials use. |
 | Auditor | **PricewaterhouseCoopers LLP** |
 | Digital-asset custody partners (investor-selected) | Anchorage Digital Bank NA, BitGo, Coinbase, Fireblocks (named at launch as "initial ecosystem partners") |
 | Secondary-market USDC conversion | **Circle**, via a dedicated smart contract (launched April 2024) |
