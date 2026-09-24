@@ -21,6 +21,11 @@ as such.
 - **Form D** filed ~March 14, 2024 (ahead of March 20 launch); at least one Form D/A amendment on
   file (received July 18, 2025 per OTC Markets).
 - BVI-domiciled; U.S. distribution under Reg D. Non-U.S. offering mechanics not confirmed.
+- **US federal tax treatment: PFIC**, not RIC/1099-DIV. BVI-domiciled companies default to
+  foreign-corporation status absent a Form 8832 election, and BUIDL's passive interest income puts
+  it under IRC §1297 PFIC classification — BlackRock's own materials confirm US taxable investors
+  receive PFIC statements. See `00`, §3.5 for the full comparison against BENJI's RIC/1099-DIV
+  model and OUSG/USTB/USCC's partnership/K-1 model.
 
 ## 3. Service providers
 
@@ -94,6 +99,7 @@ roles.
 
 ## Sources
 
+- [Astraea Counsel — Tokenized Treasury Funds in 2026: A Securities, Tax, and Custody Compliance Framework](https://astraea.law/insights/tokenized-treasury-funds-securities-compliance-2026) (BUIDL PFIC classification) · [BlackRock — PFIC statements FAQ](https://www.blackrock.com/ca/investors/en/resources/faqs/pfic-statements)
 - [StockTitan/PR — BlackRock launches BUIDL](https://www.stocktitan.net/news/BLK/black-rock-launches-its-first-tokenized-fund-buidl-on-the-ethereum-u1gqppflov4h.html)
 - [Crane Data summary](https://www.cranedata.com/archives/all-articles/10236/)
 - [OTC Markets Form D/A filing](https://www.otcmarkets.com/filing/html?id=18621246&guid=Zyt-knONFgGAB3h)

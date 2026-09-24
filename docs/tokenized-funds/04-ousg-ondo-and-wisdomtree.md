@@ -28,6 +28,15 @@
 - Eligible investors: **Qualified Purchasers** and verified **Accredited Investors**, subject to
   KYC/AML/sanctions screening; non-US investors must meet comparable home-jurisdiction standards.
 - Not registered under the '40 Act — the key structural contrast with WisdomTree (Part B).
+- **US federal tax treatment: almost certainly partnership, K-1 pass-through** — the issuing entity
+  is literally a Delaware **limited partnership** (Ondo I LP, §1 above), the default
+  partnership-taxed structure. Third-party expert analysis reaches the same conclusion but flags
+  that OUSG's own public documentation "does not state the federal tax classification expressly" —
+  so treat this as strongly inferred from entity type rather than issuer-confirmed. Under this
+  model, LP investors are taxed annually on their distributive share of fund income regardless of
+  whether cash is distributed — see `00`, §3.5 for the full comparison against BENJI's RIC/1099-DIV
+  model and BUIDL's PFIC classification.
+  [Astraea Counsel — Tokenized Treasury Funds in 2026](https://astraea.law/insights/tokenized-treasury-funds-securities-compliance-2026)
 
 ### 3. Service providers
 
@@ -123,6 +132,7 @@ OUSG/BUIDL/USCC.
 ## Sources
 
 - [SEC EDGAR — Ondo I LP Form D/A filings](https://www.sec.gov/Archives/edgar/data/1957431/000195743126000001/0001957431-26-000001-index.htm)
+- [Astraea Counsel — Tokenized Treasury Funds in 2026: A Securities, Tax, and Custody Compliance Framework](https://astraea.law/insights/tokenized-treasury-funds-securities-compliance-2026) (tax classification analysis)
 - [eco.com — OUSG Deep Dive 2026](https://eco.com/support/en/articles/15254014-ousg-deep-dive-2026-ondo-s-short-treasury-fund)
 - [readi.fi — OUSG fund profile](https://readi.fi/asset/fund-ousg-ondo-short-term-us-government-treasuries-by-ondo-i-lp/)
 - [Ondo docs — OUSG Overview](https://docs.ondo.finance/qualified-access-products/ousg/overview)

@@ -25,6 +25,12 @@ August 12, 2026** — both read in full as primary sources. Secondary sources no
 
 - Registered '40 Act fund, subject to full **Rule 2a-7** requirements (liquidity minimums, WAM/WAL
   caps, stress testing, board oversight).
+- **US federal tax treatment: Regulated Investment Company (RIC)** under Subchapter M (IRC §851),
+  same as any traditional registered mutual fund — reports via **Form 1099-DIV**, capital-gain
+  distributions get long-term treatment under §852(b)(3). The on-chain tokenization adds **zero
+  novel tax consequences** here — this is the baseline case against which BUIDL's PFIC
+  classification and OUSG/USTB/USCC's partnership/K-1 model both diverge. See `00`, §3.5 for the
+  full four-way comparison, and `09` for the mechanics of how RIC dividend taxation actually works.
 - No dedicated exemptive order for the tokenized structure itself — the blockchain-integrated
   recordkeeping operates within existing Rule 2a-7 / general '40 Act custody and transfer-agent
   rules, developed after multi-year discussions with SEC staff (Division of Investment Management,

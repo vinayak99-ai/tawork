@@ -111,6 +111,72 @@ What tokenization changes:
 - **Investor access mechanics** — wallets replace (or supplement) traditional accounts; KYC/AML
   happens once per wallet via an allowlist rather than per-trade via an intermediary.
 
+## 3.5 Taxation — four genuinely different regimes across the comparison set
+
+This is one of the most consequential structural differences in this whole comparison, and it has
+nothing to do with tokenization directly — it's a function of each fund's underlying legal-entity
+choice, with tokenization only adding a couple of genuinely novel wrinkles on top.
+
+- **Franklin Templeton BENJI/FOBXX — Regulated Investment Company (RIC)**, same as any traditional
+  mutual fund. Registered under Subchapter M (IRC §851), reports via **Form 1099-DIV**,
+  capital-gain distributions get long-term treatment under §852(b)(3). This is the world `09`
+  already covers in depth (daily accrual, declared dividends, corporate exemption logic). **The
+  on-chain wrapper adds zero novel tax consequences here.**
+- **Ondo OUSG and Superstate's USTB/USCC — partnerships, K-1 pass-through.** Confirmed directly
+  from Superstate's own documentation for USTB/USCC: *"The Fund is classified as a partnership for
+  U.S. Federal income tax purposes and is not subject to Federal income tax liability. Shareholders
+  are responsible for reporting their distributive share of the Fund's taxable income or loss on
+  their tax returns."* Both are series of a Delaware statutory trust (multi-owner DSTs default to
+  partnership taxation absent an affirmative corporate election); OUSG is structurally the same
+  (per expert third-party analysis, though OUSG's own public documentation doesn't state its
+  federal tax classification expressly). **The key practical difference from the RIC model**: a
+  partnership allocates its distributive share of income to every investor annually **whether or
+  not cash is actually distributed** — real "phantom income" exposure that doesn't exist in the
+  declare-and-pay dividend world `09` covers. Income retains its character flowing through
+  (interest stays interest, gains stay gains) with no fund-level re-characterization.
+- **BlackRock BUIDL — PFIC (Passive Foreign Investment Company), a materially worse default
+  position.** BUIDL is a BVI limited company; under the check-the-box regulations
+  (Treas. Reg. §301.7701-3), a foreign entity like this defaults to **foreign-corporation** tax
+  status absent an affirmative Form 8832 election, and since its income is almost entirely passive
+  (Treasury/repo interest), it lands in **PFIC** classification under IRC §1297. Confirmed directly
+  from BlackRock's own materials: *"U.S. taxable investors will also receive PFIC statements."*
+  Absent a **§1295 QEF election**, US holders face **§1291 excess-distribution treatment** — an
+  annual interest charge on amounts deemed deferred from prior years. A **§1296 mark-to-market
+  election is likely unavailable**, since it requires the stock be "regularly traded" on a
+  qualified exchange, which BUIDL's restricted-transferability Allowlist structure doesn't satisfy.
+- **Circle/Hashnote USYC — not a US tax question at all.** A Cayman Islands mutual fund restricted
+  to non-US Persons under Regulation S; US investors aren't meant to hold it directly. Any US
+  exposure would run through a separate Reg D feeder, whose own tax classification (likely
+  partnership) would govern instead.
+
+**Two tokenization-specific tax wrinkles, both genuinely novel — not present in a traditional
+fund's tax analysis:**
+
+- **IRC §7704 Publicly-Traded-Partnership risk**, specific to the partnership-taxed funds (OUSG,
+  USTB, USCC): if a partnership's interests become too freely/publicly tradable, §7704(a)
+  reclassifies the whole entity as a **corporation** — a serious structural risk that's real
+  precisely *because* these interests exist as transferable on-chain tokens rather than illiquid
+  LP interests. Three defenses exist: the Allowlist itself (preventing "readily tradable" secondary
+  markets), the §1.7704-1(j) 2%-annual-transfer de minimis safe harbor, or the §1.7704-1(h)
+  private-placement safe harbor (unregistered offering + ≤100 partners). Worth noting: this makes
+  the Allowlist restriction not just a securities-law control, but load-bearing for the tax
+  analysis too.
+- **Distribution-mechanics-driven timing effects**: NAV-up tokens (OUSG-style — value accrues in
+  token price, no periodic distribution) create no separate inclusion event; partnership holders
+  are still taxed annually on their distributive share regardless. Daily in-kind distributions
+  (BUIDL-style) trigger daily §1291(b) PFIC excess-distribution testing. A hypothetical rebasing
+  token (share count itself increases to reflect yield) would be treated as **ordinary income on
+  receipt under §61**, at the fair market value of the new tokens — by analogy to Rev. Rul. 2023-14
+  (staking rewards).
+
+[Astraea Counsel — Tokenized Treasury Funds in 2026: A Securities, Tax, and Custody Compliance Framework](https://astraea.law/insights/tokenized-treasury-funds-securities-compliance-2026) (BUIDL/BENJI/OUSG/USYC tax analysis) · Superstate documentation (USTB/USCC partnership classification, sourced via search snippet — the live legal-structure page returned a 404 on direct navigation at the time of this research, consistent with ongoing docs-site reorganization following the Invesco/Bitwise handoffs)
+
+**Flagged gap**: USTB/USCC's partnership classification is confirmed via a search-engine excerpt
+of Superstate's own documentation, not a directly-loaded primary page (the specific
+`/legal-structure` URL 404'd on direct fetch) — worth re-verifying against a live page if this
+distinction becomes load-bearing for anything. OUSG's classification is explicitly flagged by the
+source itself as inferred/conventional-understanding rather than issuer-confirmed.
+
 ## 4. What building a digital transfer agent appears to require
 
 Synthesizing the patterns above (most concretely documented in Franklin Templeton's SAI + August

@@ -92,6 +92,14 @@ even though it's outside this doc's core subject.
 - Superstate's public position (SEC comment letter) is that this model is already compliant with
   existing securities law — Exchange Act §17A (transfer agents), UCC Article 8 (uncertificated
   securities) — without needing new exemptive relief.
+- **US federal tax treatment: partnership, K-1 pass-through** — confirmed via Superstate's own
+  documentation (search-excerpt sourced; the live page 404'd on direct fetch, see the flagged gap
+  below): *"The Fund is classified as a partnership for U.S. Federal income tax purposes and is not
+  subject to Federal income tax liability. Shareholders are responsible for reporting their
+  distributive share of the Fund's taxable income or loss on their tax returns."* This means
+  investors are taxed annually on their allocated share of fund income regardless of whether cash
+  is actually distributed — a materially different mechanic than BENJI's RIC/1099-DIV dividend
+  model or BUIDL's PFIC classification. See `00`, §3.5 for the full four-way comparison.
 
 ## 3. Service providers
 
@@ -152,6 +160,13 @@ even though it's outside this doc's core subject.
 
 ## Flagged gaps
 
+- **§2's partnership tax classification** — confirmed via a search-engine excerpt of Superstate's
+  own documentation, not a directly-loaded primary page (the specific `/legal-structure` URL
+  404'd on direct fetch during this research, consistent with ongoing docs-site reorganization
+  following the Invesco/Bitwise handoffs) — worth re-verifying against a live page if this becomes
+  load-bearing. Also unconfirmed: the entity name discrepancy between this doc's "Superstate Trust"
+  (§1, from the N-1A filing) and "Superstate Asset Trust" (from the tax-classification search
+  excerpt) — possibly a rename or a different entity layer, not resolved in this pass.
 - **The Coinbase Stablecoin Yield Fund (CUSHY, §1.1)** — only a headline-level summary was
   available; launch date, AUM, fund structure/registration status, and Superstate's precise role
   (transfer agent vs. broader infrastructure only) weren't confirmed beyond "FundOS issues the
