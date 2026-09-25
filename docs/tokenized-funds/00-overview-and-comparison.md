@@ -78,6 +78,27 @@ using a private-fund exemption?**
   (SEC Crypto Task Force commentary has flagged transfer agents as central to how tokenized
   securities should fit into existing law) — not a compliance mandate.
 
+- **Qualified Purchaser vs. Accredited Investor — two different laws, and QP is the harder bar.**
+  These come from separate statutes and serve different purposes, and it's easy to conflate them.
+  **Accredited Investor (AI)** is a Securities Act concept (Reg D **Rule 501(a)**) that gates who
+  can be sold *any* unregistered security in a private placement: individual income >$200k/>$300k
+  joint (2 prior years + expectation of the same this year) or net worth >$1M excluding primary
+  residence; entities generally >$5M in assets; plus, since 2020, Series 7/65/82 license holders,
+  "knowledgeable employees" of the specific private fund, and family offices with >$5M AUM.
+  **Qualified Purchaser (QP)** is an Investment Company Act concept (**§2(a)(51)**) that gates who
+  can invest in a fund relying on **§3(c)(7)** specifically — nothing else in securities law calls
+  for QP status: individuals need ≥**$5M in investments** (a narrower, technically-defined term
+  under Rule 2a51-1 — securities, investment-purpose real estate, cash/cash-equivalents, commodity
+  interests; explicitly excludes a primary residence or business-use real estate), entities need
+  ≥**$25M in investments**. **In practice QP is a strict subset of AI** — $5M in investments alone
+  clears the AI net-worth bar easily, but plenty of AIs (the $200k-income path, a Series 65 license,
+  a knowledgeable-employee designation) aren't anywhere near QP. This is exactly why every fund in
+  this comparison checks **both**: §3(c)(7) requires QP status to preserve the ICA exemption, and
+  the Reg D 506(c) offering *itself* separately requires verifying AI status — two different
+  regulators' tests, stacked on top of each other, even though QP status happens to economically
+  imply AI status.
+  [SEC — Accredited Investor Definition, 2020 amendments](https://www.sec.gov/files/rules/final/2020/33-10824.pdf)
+
 - **Superstate's 2026 pivot is the most instructive data point for your specific question.**
   Superstate started as an asset manager that also built its own transfer-agent infrastructure
   (Superstate Services LLC, SEC-registered digital TA, registered ~March 2025). In 2026 it handed
