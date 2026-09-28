@@ -41,7 +41,7 @@ directional only. Full source links are in each per-fund doc.
 | Digital-asset custody options | Not detailed | Anchorage, BitGo, Coinbase, Fireblocks | Anchorage Digital Bank and/or BitGo (investor choice) | Anchorage Digital Bank (secondary source) | Coinbase Custody / Coinbase Prime | Not confirmed |
 | Auditor | **PricewaterhouseCoopers** | **PricewaterhouseCoopers** | Not confirmed | Ernst &amp; Young (secondary source) | Not confirmed | Not confirmed |
 | Blockchains | Stellar (primary), Polygon, Aptos, Avalanche, Arbitrum, Ethereum, Solana, Base, BNB Chain | Ethereum (launch), + Aptos, Arbitrum, Avalanche, Optimism, Polygon, Solana, BNB Chain | Ethereum (launch), + Solana, Plume | Ethereum, Solana, Plume | Ethereum, Polygon, Solana, XRP Ledger (+Mantle per some sources) | Stellar (primary "Secondary Record"), Ethereum |
-| Token/legal-title model | Token = permissioned representation of book-entry ownership; TA's off-chain master file is authoritative | Token via ERC-20, whitelisted; Securitize's DS Protocol enforces allowlist; blockchain treated as "primary ledger" by TA function | Hybrid on-chain/off-chain master securityholder file; allowlist enforced at smart-contract level | Same TA architecture as USTB | Permissioned multi-chain token; TA function not disclosed | Blockchain is an explicitly **secondary, non-authoritative** record; book-entry stays authoritative |
+| Token/legal-title model | Token is one joined half of FTIS's single "Integrated System" official record (off-chain book-entry + blockchain, linked in real time by referential data linkage); FTIS retains unilateral administrative control over both halves | Token via ERC-20, whitelisted; Securitize's DS Protocol enforces allowlist; blockchain treated as "primary ledger" by TA function | Hybrid on-chain/off-chain master securityholder file; allowlist enforced at smart-contract level | Same TA architecture as USTB | Permissioned multi-chain token; TA function not disclosed | Blockchain is an explicitly **secondary, non-authoritative** record; book-entry stays authoritative |
 | Redemption / settlement | ACH, same-day cutoff; **no DTCC/NSCC involvement found** | Direct fund redemption + Circle USDC smart-contract conversion (24/7); no DTCC/NSCC found | USD wire or USDC/Solana/Plume, same-day/near-instant; no DTCC/NSCC found | Same as USTB | USDC/PYUSD, instant 24/7 mint/redeem riding on BUIDL primary market | Not detailed; registered-fund structure, dealer-principal liquidity model marketed for 24/7 trading |
 | Launch | Apr 2021 (Stellar); TA blockchain-of-record cutover Feb 2022 | Mar 20, 2024 | Feb 1, 2024 | Jul 22, 2024 | Jan 26, 2023 | Oct 2023 |
 | AUM (2026, approximate — sources vary) | ~$726M–$828M | ~$2.5B–$3B (largest tokenized Treasury fund) | ~$836M–$967M | ~$225M–$278M | ~$400M–$625M | Not found |
@@ -53,12 +53,20 @@ Every fund above sits somewhere on one spectrum: **how much of the traditional m
 regulatory apparatus does the tokenized structure keep, versus how much does it route around by
 using a private-fund exemption?**
 
-- **Fully registered, retail-eligible, blockchain-as-secondary-record**: WisdomTree (WTGXX) and
-  Franklin Templeton (BENJI/FOBXX) both chose to stay inside the '40 Act (WTGXX is not even a
-  money market fund's Rule 2a-7 subtype restriction issue the same way, while FOBXX specifically
-  *is* a 2a-7 government MMF). Both treat the blockchain token as a representation reconciled
-  against an authoritative, transfer-agent-controlled off-chain book-entry record — the blockchain
-  is not itself dispositive of legal ownership. This preserves retail access ($1–low minimums) and
+- **Fully registered, retail-eligible**: WisdomTree (WTGXX) and Franklin Templeton (BENJI/FOBXX)
+  both chose to stay inside the '40 Act (WTGXX is not even a money market fund's Rule 2a-7 subtype
+  restriction issue the same way, while FOBXX specifically *is* a 2a-7 government MMF). Their
+  ledger architectures aren't actually identical, though — worth being precise here. WisdomTree's
+  own materials explicitly label the blockchain a **"Secondary Record,"** keeping book-entry
+  unambiguously authoritative. Franklin/FTIS's model, confirmed directly from its August 12, 2026
+  SEC no-action letter, is different: FTIS's off-chain book-entry (holding PII) and one or more
+  public blockchains (holding transactional/anonymized data — purchases, redemptions, NAVs,
+  dividend distributions, complete transaction history) are **joined in real time by referential
+  data linkage into a single official record**, which FTIS calls the "Integrated System" — neither
+  half is independently "the" record; the *joined* system is. What makes either model legally
+  sound isn't a book-entry-vs-blockchain hierarchy — it's that the TA (FTIS or WisdomTree
+  Transfers) retains unilateral administrative control (correct/freeze/migrate/restore) over
+  whichever component the record lives in. This preserves retail access ($1–low minimums) and
   full '40 Act investor protections, at the cost of Rule 2a-7 / '40 Act compliance overhead and the
   need to resolve novel custody questions (see Franklin's 2022–2026 SEC no-action process below).
 
@@ -210,10 +218,18 @@ Synthesizing the patterns above (most concretely documented in Franklin Templeto
 
 2. **A hybrid on-chain/off-chain "master securityholder file."** The legally authoritative record
    of ownership is controlled by the transfer agent, not by whichever wallet holds a token. Design
-   pattern: off-chain database holds PII and is the book-entry system of record; on-chain
-   transactions are anonymized (wallet addresses only) and reconciled into the same master file in
-   real time or daily. Franklin's SAI is explicit that a wrongly-transferred wallet holder "would
-   have no legal claim" to shares — the TA's records control, not raw possession of tokens.
+   pattern, confirmed verbatim from
+   [Franklin's August 12, 2026 SEC no-action letter](https://www.sec.gov/files/investment/no-action/franklin-templeton-no-action-incoming-letter-081226.pdf)
+   for its "Integrated System": an off-chain database holds PII and *is* the book-entry system of record; one or more
+   blockchains hold the transactional/anonymized data (purchases, redemptions, NAVs, dividends,
+   complete transaction history); the two are "automatically joined by [the TA] on a real-time
+   basis by referential data linkage to establish the master securityholder file." **Neither half
+   is independently authoritative — the joined system is** — but the TA's unilateral administrative
+   control over both halves (correcting, freezing, migrating, or restoring records on the
+   blockchain exactly as it always could in book-entry) is what actually satisfies the
+   custody/investor-protection analysis, not a ledger-primacy hierarchy. Franklin's SAI separately
+   confirms a wrongly-transferred wallet holder "would have no legal claim" to shares — the TA's
+   administrative authority controls, not raw possession of tokens.
 
 3. **A permissioned-chain / allowlist architecture**, not a permissionless bearer-token model.
    Every fund enforces KYC/AML/OFAC screening before a wallet is whitelisted to hold or receive
